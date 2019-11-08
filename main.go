@@ -1,16 +1,17 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"strconv"
 
 	"github.com/shiftstack-dev-tools/gazelle/job"
 )
 
-const (
-	jobName = "release-openshift-ocp-installer-e2e-openstack-serial-4.3"
-	from    = 338
-	to      = 348
+var (
+	jobName string
+	from    int
+	to      int
 )
 
 func fromTo(from, to int) []string {
@@ -32,4 +33,12 @@ func main() {
 
 		fmt.Println(j)
 	}
+}
+
+func init() {
+	flag.StringVar(&jobName, "job", "", "Name of the test job")
+	flag.IntVar(&from, "from", 1, "First job to fetch")
+	flag.IntVar(&to, "to", 1, "Last job to fetch")
+
+	flag.Parse()
 }
