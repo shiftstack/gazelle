@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/shiftstack-dev-tools/gazelle/job"
+	"github.com/shiftstack/gazelle/job"
 )
 
 var (
