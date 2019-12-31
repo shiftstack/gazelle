@@ -22,6 +22,10 @@ type Job struct {
 	cache *cache.Cache
 }
 
+func (j Job) baseURL() string {
+	return baseURL + "/" + j.Name + "/" + j.ID
+}
+
 func (j *Job) fetch(file string) (io.Reader, error) {
 	if j.cache == nil {
 		j.cache = new(cache.Cache)
@@ -34,7 +38,7 @@ func (j *Job) fetch(file string) (io.Reader, error) {
 }
 
 func (j Job) StartTime() (time.Time, error) {
-	f, err := j.fetch(baseURL + "/" + j.Name + "/" + j.ID + "/started.json")
+	f, err := j.fetch(j.baseURL() + "/started.json")
 	if err != nil {
 		return time.Time{}, err
 	}
@@ -48,7 +52,7 @@ func (j Job) StartTime() (time.Time, error) {
 }
 
 func (j Job) FinishTime() (time.Time, error) {
-	f, err := j.fetch(baseURL + "/" + j.Name + "/" + j.ID + "/finished.json")
+	f, err := j.fetch(j.baseURL() + "/finished.json")
 	if err != nil {
 		return time.Time{}, err
 	}
@@ -62,7 +66,7 @@ func (j Job) FinishTime() (time.Time, error) {
 }
 
 func (j Job) Result() (string, error) {
-	f, err := j.fetch(baseURL + "/" + j.Name + "/" + j.ID + "/finished.json")
+	f, err := j.fetch(j.baseURL() + "/finished.json")
 	if err != nil {
 		return "", err
 	}
