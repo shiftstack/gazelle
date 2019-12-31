@@ -2,7 +2,6 @@ package cache
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -45,7 +44,7 @@ func (c *Cache) Fetch(url string) (io.Reader, error) {
 
 	if res.StatusCode != http.StatusOK {
 		io.Copy(ioutil.Discard, res.Body)
-		return nil, fmt.Errorf("error: status code %d", res.StatusCode)
+		return nil, ErrUnexpectedStatusCode(res.StatusCode)
 	}
 
 	b, err := ioutil.ReadAll(res.Body)
