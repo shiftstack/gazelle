@@ -5,8 +5,8 @@ Returns tab-separated build information, ready to be pasted in the CI spreadshee
 ## How
 
 ```
-go build .
-./gazelle -job release-openshift-ocp-installer-e2e-openstack-serial-4.3 -from 1 -to 2
+go build ./cmd/cireport
+./cireport -job release-openshift-ocp-installer-e2e-openstack-serial-4.3 -from 1 -to 2
 ```
 
 ```
