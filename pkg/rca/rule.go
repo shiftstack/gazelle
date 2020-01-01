@@ -33,3 +33,27 @@ func erroredMachine(j job) (rc string, ok bool, err error) {
 
 	return
 }
+
+func erroredNode(j job) (rc string, ok bool, err error) {
+	var (
+		logs io.Reader
+		b    []byte
+	)
+
+	logs, err = j.Nodes()
+	if err != nil {
+		return
+	}
+
+	b, err = ioutil.ReadAll(logs)
+	if err != nil {
+		return
+	}
+
+	if strings.Contains(string(b), "ERROR") {
+		rc = ErroredVM
+		ok = true
+	}
+
+	return
+}

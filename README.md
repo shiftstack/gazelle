@@ -2,14 +2,20 @@
 
 Returns tab-separated build information, ready to be pasted in the CI spreadsheet.
 
+## Root cause analysis
+
+The program looks for errored machines in `machines.json` and in `openstack_nodes.log`. If it finds any, it directly prints `Provisioned VM in ERROR state`.
+
+The rules are coded in `pkg/rca/rule.go`. When new rules are coded, and add them to the batch in `pkg/rca/rca.go`.
+
 ## How
 
 ```
 go build ./cmd/cireport
-./cireport -job release-openshift-ocp-installer-e2e-openstack-serial-4.3 -from 1 -to 2
+./cireport -job e2e-openstack-serial -target 4.2 -from 333 -to 334 | tee /dev/stderr | tac | wl-copy
 ```
 
 ```
-2       2019-10-01 23:13:56 +0000 UTC   28s     FAILURE
-1       2019-10-01 19:13:26 +0000 UTC   23s     FAILURE
+334	2019-12-23 13:28:58 +0000 UTC	10m21s	FAILURE					cireport	Provisioned VM in ERROR state
+333	2019-12-23 03:13:50 +0000 UTC	12m14s	FAILURE					cireport	Provisioned VM in ERROR state
 ```

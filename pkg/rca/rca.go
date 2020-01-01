@@ -7,6 +7,7 @@ import (
 var (
 	rules = []func(job) (string, bool, error){
 		erroredMachine,
+		erroredNode,
 	}
 )
 
