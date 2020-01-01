@@ -44,7 +44,7 @@ func (c *Cache) Fetch(url string) (io.Reader, error) {
 
 	if res.StatusCode != http.StatusOK {
 		io.Copy(ioutil.Discard, res.Body)
-		return nil, ErrUnexpectedStatusCode(res.StatusCode)
+		return nil, ErrUnexpectedStatusCode{url, res.StatusCode}
 	}
 
 	b, err := ioutil.ReadAll(res.Body)

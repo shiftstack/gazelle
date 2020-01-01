@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/shiftstack/gazelle/pkg/job"
+	"github.com/shiftstack/gazelle/pkg/rca"
 )
 
 var (
@@ -37,11 +38,23 @@ func main() {
 			panic(err)
 		}
 
+		rootCause, err := rca.Find(j)
+		if err != nil {
+			panic(err)
+		}
+
 		fmt.Println(strings.Join([]string{
 			j.ID,                               // ID
 			startedAt.String(),                 // Started
 			finishedAt.Sub(startedAt).String(), // Duration
 			result,                             // Result
+			"",                                 //
+			"",                                 //
+			"",                                 //
+			"",                                 //
+			"",                                 //
+			"cireport",                         // CI Cop
+			rootCause,                          // Root Cause
 		}, "\t"))
 	}
 }

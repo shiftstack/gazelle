@@ -78,3 +78,15 @@ func (j Job) Result() (string, error) {
 
 	return finished.result, nil
 }
+
+func (j Job) BuildLog() (io.Reader, error) {
+	return j.fetch(j.baseURL() + "/build-log.txt")
+}
+
+func (j Job) Machines() (io.Reader, error) {
+	return j.fetch(j.baseURL() + "/artifacts/e2e-openstack/machines.json")
+}
+
+func (j Job) Nodes() (io.Reader, error) {
+	return j.fetch(j.baseURL() + "/artifacts/e2e-openstack/openstack_nodes.log")
+}

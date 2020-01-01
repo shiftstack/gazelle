@@ -5,8 +5,11 @@ import (
 	"strconv"
 )
 
-type ErrUnexpectedStatusCode int
+type ErrUnexpectedStatusCode struct {
+	URL    string
+	Status int
+}
 
 func (e ErrUnexpectedStatusCode) Error() string {
-	return "Unexpected status code: " + strconv.Itoa(int(e)) + " " + http.StatusText(int(e))
+	return "Unexpected status code calling '" + e.URL + "': " + strconv.Itoa(e.Status) + " " + http.StatusText(e.Status)
 }
