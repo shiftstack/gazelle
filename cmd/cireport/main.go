@@ -12,6 +12,7 @@ import (
 
 var (
 	jobName string
+	target  string
 	from    int
 	to      int
 )
@@ -19,8 +20,9 @@ var (
 func main() {
 	for i := from; i <= to; i++ {
 		j := job.Job{
-			Name: jobName,
-			ID:   strconv.Itoa(i),
+			Name:   jobName,
+			Target: target,
+			ID:     strconv.Itoa(i),
 		}
 
 		startedAt, err := j.StartTime()
@@ -61,6 +63,7 @@ func main() {
 
 func init() {
 	flag.StringVar(&jobName, "job", "", "Name of the test job")
+	flag.StringVar(&target, "target", "", "Target OpenShift version")
 	flag.IntVar(&from, "from", 1, "First job to fetch")
 	flag.IntVar(&to, "to", 1, "Last job to fetch")
 

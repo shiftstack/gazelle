@@ -9,13 +9,10 @@ import (
 	"github.com/shiftstack/gazelle/pkg/cache"
 )
 
-const (
-	baseURL = "https://gcsweb-ci.svc.ci.openshift.org/gcs/origin-ci-test/logs"
-)
-
 type Job struct {
-	Name string
-	ID   string
+	Name   string
+	Target string
+	ID     string
 
 	client http.Client
 
@@ -23,7 +20,7 @@ type Job struct {
 }
 
 func (j Job) baseURL() string {
-	return baseURL + "/" + j.Name + "/" + j.ID
+	return "https://storage.googleapis.com/origin-ci-test/logs/release-openshift-ocp-installer-" + j.Name + "-" + j.Target + "/" + j.ID
 }
 
 func (j *Job) fetch(file string) (io.Reader, error) {
@@ -84,9 +81,9 @@ func (j Job) BuildLog() (io.Reader, error) {
 }
 
 func (j Job) Machines() (io.Reader, error) {
-	return j.fetch(j.baseURL() + "/artifacts/e2e-openstack/machines.json")
+	return j.fetch(j.baseURL() + "/artifacts/" + j.Name + "/machines.json")
 }
 
 func (j Job) Nodes() (io.Reader, error) {
-	return j.fetch(j.baseURL() + "/artifacts/e2e-openstack/openstack_nodes.log")
+	return j.fetch(j.baseURL() + "/artifacts/" + j.Name + "/openstack_nodes.log")
 }
