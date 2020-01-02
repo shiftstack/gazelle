@@ -87,3 +87,7 @@ func (j Job) Machines() (io.Reader, error) {
 func (j Job) Nodes() (io.Reader, error) {
 	return j.fetch(j.baseURL() + "/artifacts/" + j.Name + "/openstack_nodes.log")
 }
+
+func (j Job) JobURL() string {
+	return "https://prow.svc.ci.openshift.org/view/gcs/origin-ci-test/logs/release-openshift-ocp-installer-" + j.Name + "-" + j.Target + "/" + j.ID
+}
