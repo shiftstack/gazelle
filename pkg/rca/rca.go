@@ -11,6 +11,7 @@ var (
 		RuleFunc(erroredNode),
 		RuleFunc(erroredVolume),
 		RuleFunc(failedTests),
+		RuleFunc(machineTimeout),
 	}
 )
 

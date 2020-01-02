@@ -88,3 +88,21 @@ func failedTests(j job, testFailures chan<- Cause, infraFailures chan<- Cause) e
 
 	return nil
 }
+
+func machineTimeout(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
+	logs, err := j.BuildLog()
+	if err != nil {
+		return err
+	}
+
+	b, err := ioutil.ReadAll(logs)
+	if err != nil {
+		return err
+	}
+
+	if strings.Contains(string(b), "timeout while waiting for state to become 'ACTIVE' (last state: 'BUILD', timeout: 30m0s)") {
+		infraFailures <- CauseMachineTimeout
+	}
+
+	return nil
+}
