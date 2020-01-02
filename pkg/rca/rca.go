@@ -2,15 +2,20 @@ package rca
 
 import (
 	"io"
+	"sync"
 )
 
 var (
-	rules = []func(job) (string, bool, error){
-		erroredMachine,
-		erroredNode,
-		erroredVolume,
+	rules = []Rule{
+		RuleFunc(erroredMachine),
+		RuleFunc(erroredNode),
+		RuleFunc(erroredVolume),
 	}
 )
+
+type Rule interface {
+	Apply(j job, testFailure chan<- Cause, infraFailure chan<- Cause) error
+}
 
 type job interface {
 	Result() (string, error)
@@ -19,24 +24,48 @@ type job interface {
 	Nodes() (io.Reader, error)
 }
 
-func Find(j job) (string, error) {
-	res, err := j.Result()
-	if err != nil {
-		return "", err
-	}
-	if res == "SUCCESS" {
-		return "", nil
+func Find(j job) (<-chan Cause, <-chan Cause, <-chan error) {
+	testFailures := make(chan Cause)
+	infraFailures := make(chan Cause)
+	errs := make(chan error, len(rules))
+
+	var wg sync.WaitGroup
+	for _, rule := range rules {
+		wg.Add(1)
+		go func(rule Rule) {
+			if err := rule.Apply(j, testFailures, infraFailures); err != nil {
+				errs <- err
+			}
+			wg.Done()
+		}(rule)
 	}
 
-	for _, apply := range rules {
-		rc, ok, err := apply(j)
-		if err != nil {
-			return "", err
-		}
-		if ok {
-			return rc, nil
-		}
-	}
+	go func() {
+		wg.Wait()
+		close(testFailures)
+		close(infraFailures)
+		close(errs)
+	}()
 
-	return "", nil
+	return testFailures, uniqueFilter(infraFailures), errs
+}
+
+func uniqueFilter(inCh <-chan Cause) <-chan Cause {
+	var (
+		outCh = make(chan Cause)
+		cache = make(map[Cause]struct{})
+	)
+
+	go func() {
+		for cause := range inCh {
+			if _, ok := cache[cause]; ok {
+				continue
+			}
+			outCh <- cause
+			cache[cause] = struct{}{}
+		}
+		close(outCh)
+	}()
+
+	return outCh
 }

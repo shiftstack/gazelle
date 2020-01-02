@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/shiftstack/gazelle/pkg/job"
 	"github.com/shiftstack/gazelle/pkg/rca"
@@ -40,24 +41,64 @@ func main() {
 			panic(err)
 		}
 
-		rootCause, err := rca.Find(j)
-		if err != nil {
-			panic(err)
+		testFailuresCh, infraFailuresCh, errs := rca.Find(j)
+
+		// panic at the first error
+		go func() {
+			for err := range errs {
+				panic(err)
+			}
+		}()
+
+		var wg sync.WaitGroup
+		wg.Add(2)
+		var (
+			testFailures  []string
+			infraFailures []string
+		)
+		go func() {
+			testFailures = reduceFailures(testFailuresCh)
+			wg.Done()
+		}()
+		go func() {
+			infraFailures = reduceFailures(infraFailuresCh)
+			wg.Done()
+		}()
+		wg.Wait()
+
+		rootCause := testFailures
+		if len(infraFailures) > 0 {
+			rootCause = infraFailures
 		}
 
-		fmt.Println(strings.Join([]string{
-			fmt.Sprintf(`=HYPERLINK("%s","%s")`, j.JobURL(), j.ID), // ID
-			startedAt.String(),                 // Started
-			finishedAt.Sub(startedAt).String(), // Duration
-			result,                             // Result
-			"",                                 // Fixed failure?
-			fmt.Sprintf(`=HYPERLINK("%s")`, j.BuildLogURL()), // Logs
-			fmt.Sprintf(`=HYPERLINK("%s")`, j.MachinesURL()), // Machines.json
-			fmt.Sprintf(`=HYPERLINK("%s")`, j.NodesURL()),    // Nodes
-			"cireport", // CI Cop
-			rootCause,  // Root Cause
-		}, "\t"))
+		var s strings.Builder
+		{
+			s.WriteString(`<meta http-equiv="content-type" content="text/html; charset=utf-8"><meta name="generator" content="cireport"/><table xmlns="http://www.w3.org/1999/xhtml"><tbody><tr><td>`)
+			s.WriteString(strings.Join([]string{
+				`<a href="` + j.JobURL() + `">` + j.ID + `</a>`,
+				startedAt.String(),
+				finishedAt.Sub(startedAt).String(),
+				result,
+				"",
+				`<a href="` + j.BuildLogURL() + `">` + j.BuildLogURL() + `</a>`,
+				`<a href="` + j.MachinesURL() + `">` + j.MachinesURL() + `</a>`,
+				`<a href="` + j.NodesURL() + `">` + j.NodesURL() + `</a>`,
+				"cireport",
+				strings.Join(rootCause, "<br />"),
+			}, "</td><td>"))
+			s.WriteString(`</td></tr></tbody></table>`)
+		}
+		fmt.Println(s.String())
+
 	}
+}
+
+func reduceFailures(failures <-chan rca.Cause) []string {
+	var out []string
+	for failure := range failures {
+		out = append(out, string(failure))
+	}
+	return out
 }
 
 func init() {

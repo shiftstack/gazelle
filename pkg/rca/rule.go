@@ -1,84 +1,66 @@
 package rca
 
 import (
-	"io"
 	"io/ioutil"
 	"strings"
 )
 
-const (
-	ErroredVM     = "Provisioned VM in ERROR state"
-	ErroredVolume = "Provisioned Volume in ERROR state"
-)
+type RuleFunc func(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error
 
-func erroredMachine(j job) (rc string, ok bool, err error) {
-	var (
-		logs io.Reader
-		b    []byte
-	)
+func (f RuleFunc) Apply(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
+	return f(j, testFailures, infraFailures)
+}
 
-	logs, err = j.Machines()
+func erroredMachine(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
+	logs, err := j.Machines()
 	if err != nil {
-		return
+		return err
 	}
 
-	b, err = ioutil.ReadAll(logs)
+	b, err := ioutil.ReadAll(logs)
 	if err != nil {
-		return
+		return err
 	}
 
 	if strings.Contains(string(b), `"machine.openshift.io/instance-state": "ERROR"`) {
-		rc = ErroredVM
-		ok = true
+		infraFailures <- CauseErroredVM
 	}
 
-	return
+	return nil
 }
 
-func erroredNode(j job) (rc string, ok bool, err error) {
-	var (
-		logs io.Reader
-		b    []byte
-	)
-
-	logs, err = j.Nodes()
+func erroredNode(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
+	logs, err := j.Nodes()
 	if err != nil {
-		return
+		return err
 	}
 
-	b, err = ioutil.ReadAll(logs)
+	b, err := ioutil.ReadAll(logs)
 	if err != nil {
-		return
+		return err
 	}
 
 	if strings.Contains(string(b), "ERROR") {
-		rc = ErroredVM
-		ok = true
+		infraFailures <- CauseErroredVM
 	}
 
-	return
+	return nil
 }
 
-func erroredVolume(j job) (rc string, ok bool, err error) {
-	var (
-		logs io.Reader
-		b    []byte
-	)
-
-	logs, err = j.BuildLog()
+func erroredVolume(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
+	logs, err := j.BuildLog()
 	if err != nil {
-		return
+		return err
 	}
 
-	b, err = ioutil.ReadAll(logs)
+	b, err := ioutil.ReadAll(logs)
 	if err != nil {
-		return
+		return err
 	}
 
 	if strings.Contains(string(b), "The volume is in error status. Please check with your cloud admin") {
-		rc = ErroredVolume
-		ok = true
+		infraFailures <- CauseErroredVolume
 	}
 
-	return
+	return nil
 }
