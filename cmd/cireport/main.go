@@ -51,11 +51,11 @@ func main() {
 			finishedAt.Sub(startedAt).String(), // Duration
 			result,                             // Result
 			"",                                 // Fixed failure?
-			"",                                 // Logs
-			"",                                 // Machines.json
-			"",                                 // Nodes
-			"cireport",                         // CI Cop
-			rootCause,                          // Root Cause
+			fmt.Sprintf(`=HYPERLINK("%s")`, j.BuildLogURL()), // Logs
+			fmt.Sprintf(`=HYPERLINK("%s")`, j.MachinesURL()), // Machines.json
+			fmt.Sprintf(`=HYPERLINK("%s")`, j.NodesURL()),    // Nodes
+			"cireport", // CI Cop
+			rootCause,  // Root Cause
 		}, "\t"))
 	}
 }
