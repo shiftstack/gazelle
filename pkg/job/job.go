@@ -1,6 +1,7 @@
 package job
 
 import (
+	"bufio"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -102,4 +103,39 @@ func (j Job) Nodes() (io.Reader, error) {
 
 func (j Job) JobURL() string {
 	return "https://prow.svc.ci.openshift.org/view/gcs/origin-ci-test/logs/release-openshift-ocp-installer-" + j.Name + "-" + j.Target + "/" + j.ID
+}
+
+func (j Job) JUnitURL() (string, error) {
+	const (
+		target       = "Writing JUnit report to /tmp/artifacts/junit/"
+		targetLength = len(target)
+	)
+
+	buildLog, err := j.BuildLog()
+	if err != nil {
+		return "", err
+	}
+
+	scanner := bufio.NewScanner(buildLog)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if len(line) >= targetLength && line[:len(target)] == target {
+			filename := line[len(target):]
+			return j.baseURL() + "/artifacts/" + j.Name + "/junit/" + filename, scanner.Err()
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return "", err
+	}
+
+	return "", io.EOF
+}
+
+func (j Job) JUnit() (io.Reader, error) {
+	u, err := j.JUnitURL()
+	if err != nil {
+		return nil, err
+	}
+	return j.fetch(u)
 }

@@ -89,7 +89,6 @@ func main() {
 			s.WriteString(`</td></tr></tbody></table>`)
 		}
 		fmt.Println(s.String())
-
 	}
 }
 

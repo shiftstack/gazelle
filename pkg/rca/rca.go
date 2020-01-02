@@ -10,6 +10,7 @@ var (
 		RuleFunc(erroredMachine),
 		RuleFunc(erroredNode),
 		RuleFunc(erroredVolume),
+		RuleFunc(failedTests),
 	}
 )
 
@@ -22,12 +23,22 @@ type job interface {
 	BuildLog() (io.Reader, error)
 	Machines() (io.Reader, error)
 	Nodes() (io.Reader, error)
+	JUnit() (io.Reader, error)
 }
 
 func Find(j job) (<-chan Cause, <-chan Cause, <-chan error) {
+
 	testFailures := make(chan Cause)
 	infraFailures := make(chan Cause)
 	errs := make(chan error, len(rules))
+
+	res, _ := j.Result()
+	if res == "SUCCESS" {
+		close(testFailures)
+		close(infraFailures)
+		close(errs)
+		return testFailures, infraFailures, errs
+	}
 
 	var wg sync.WaitGroup
 	for _, rule := range rules {
