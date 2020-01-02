@@ -106,3 +106,21 @@ func machineTimeout(j job, testFailures chan<- Cause, infraFailures chan<- Cause
 
 	return nil
 }
+
+func oauthWellKnown(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
+	logs, err := j.BuildLog()
+	if err != nil {
+		return err
+	}
+
+	b, err := ioutil.ReadAll(logs)
+	if err != nil {
+		return err
+	}
+
+	if strings.Contains(string(b), "Cluster operator authentication Progressing is True with ProgressingWellKnownNotReady: Progressing: got '404 Not Found' status while trying to GET the OAuth well-known") {
+		infraFailures <- CauseClusterTimeout
+	}
+
+	return nil
+}

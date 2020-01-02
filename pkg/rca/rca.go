@@ -12,6 +12,7 @@ var (
 		RuleFunc(erroredVolume),
 		RuleFunc(failedTests),
 		RuleFunc(machineTimeout),
+		RuleFunc(oauthWellKnown),
 	}
 )
 
