@@ -76,14 +76,30 @@ func (j Job) Result() (string, error) {
 	return finished.result, nil
 }
 
+func (j Job) BuildLogURL() string {
+	return j.baseURL() + "/build-log.txt"
+}
+
 func (j Job) BuildLog() (io.Reader, error) {
-	return j.fetch(j.baseURL() + "/build-log.txt")
+	return j.fetch(j.BuildLogURL())
+}
+
+func (j Job) MachinesURL() string {
+	return j.baseURL() + "/artifacts/" + j.Name + "/machines.json"
 }
 
 func (j Job) Machines() (io.Reader, error) {
-	return j.fetch(j.baseURL() + "/artifacts/" + j.Name + "/machines.json")
+	return j.fetch(j.MachinesURL())
+}
+
+func (j Job) NodesURL() string {
+	return j.baseURL() + "/artifacts/" + j.Name + "/openstack_nodes.log"
 }
 
 func (j Job) Nodes() (io.Reader, error) {
-	return j.fetch(j.baseURL() + "/artifacts/" + j.Name + "/openstack_nodes.log")
+	return j.fetch(j.NodesURL())
+}
+
+func (j Job) JobURL() string {
+	return "https://prow.svc.ci.openshift.org/view/gcs/origin-ci-test/logs/release-openshift-ocp-installer-" + j.Name + "-" + j.Target + "/" + j.ID
 }
