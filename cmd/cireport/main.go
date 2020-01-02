@@ -46,7 +46,7 @@ func main() {
 		}
 
 		fmt.Println(strings.Join([]string{
-			j.ID,                               // ID
+			fmt.Sprintf(`=HYPERLINK("%s","%s")`, j.JobURL(), j.ID), // ID
 			startedAt.String(),                 // Started
 			finishedAt.Sub(startedAt).String(), // Duration
 			result,                             // Result
