@@ -10,12 +10,18 @@ The rules are coded in `pkg/rca/rule.go`. When new rules are coded, and add them
 
 ## How
 
-```
+```shell
 go build ./cmd/cireport
-./cireport -job e2e-openstack-serial -target 4.2 -from 333 -to 334 | tee /dev/stderr | tac | wl-copy
+./cireport -job e2e-openstack-serial -target 4.2 -from 345 -to 346
 ```
 
 ```
-334	2019-12-23 13:28:58 +0000 UTC	10m21s	FAILURE					cireport	Provisioned VM in ERROR state
-333	2019-12-23 03:13:50 +0000 UTC	12m14s	FAILURE					cireport	Provisioned VM in ERROR state
+345     2019-12-28 14:37:19 +0000 UTC   2h11m34s        SUCCESS                                 cireport
+346     2019-12-29 02:38:10 +0000 UTC   2h22m1s FAILURE                                 cireport        Provisioned VM in ERROR state
+```
+
+This command gets entries ready for pasting into the spreadsheet, given `$CLIPBOARD-COPY` your favourite clipboard "copy" command:
+
+```shell
+./cireport -job e2e-openstack-serial -target 4.2 -from 345 -to 346 | tee /dev/stderr | tac | "$CLIPBOARD-COPY"
 ```
