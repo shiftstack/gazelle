@@ -1,89 +1,56 @@
 package rca
 
 import (
+	"bufio"
 	"encoding/xml"
-	"io/ioutil"
-	"strings"
+	"regexp"
 
 	"github.com/pierreprinetti/go-junit"
 )
 
-type RuleFunc func(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error
+func infraFailureIfMatchBuildLogs(expr string, cause Cause) Rule {
+	re := regexp.MustCompile(expr)
+	return func(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
+		f, err := j.BuildLog()
+		if err != nil {
+			return err
+		}
 
-func (f RuleFunc) Apply(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
-	return f(j, testFailures, infraFailures)
+		if re.MatchReader(bufio.NewReader(f)) {
+			infraFailures <- cause
+		}
+		return nil
+	}
 }
 
-func erroredMachine(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
-	logs, err := j.Machines()
-	if err != nil {
-		return err
-	}
+func infraFailureIfMatchMachines(expr string, cause Cause) Rule {
+	re := regexp.MustCompile(expr)
+	return func(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
+		f, err := j.Machines()
+		if err != nil {
+			return err
+		}
 
-	b, err := ioutil.ReadAll(logs)
-	if err != nil {
-		return err
+		if re.MatchReader(bufio.NewReader(f)) {
+			infraFailures <- cause
+		}
+		return nil
 	}
-
-	if strings.Contains(string(b), `"machine.openshift.io/instance-state": "ERROR"`) {
-		infraFailures <- CauseErroredVM
-	}
-
-	return nil
 }
 
-func erroredVmAtBoot(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
-	logs, err := j.BuildLog()
-	if err != nil {
-		return err
+func infraFailureIfMatchNodes(expr string, cause Cause) Rule {
+	re := regexp.MustCompile(expr)
+	return func(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
+		f, err := j.Nodes()
+		if err != nil {
+			return err
+		}
+
+		if re.MatchReader(bufio.NewReader(f)) {
+			infraFailures <- cause
+		}
+		return nil
 	}
-
-	b, err := ioutil.ReadAll(logs)
-	if err != nil {
-		return err
-	}
-
-	if strings.Contains(string(b), "to become ready: unexpected state 'ERROR', wanted target 'ACTIVE'. last error") {
-		infraFailures <- CauseErroredVM
-	}
-
-	return nil
-}
-
-func erroredNode(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
-	logs, err := j.Nodes()
-	if err != nil {
-		return err
-	}
-
-	b, err := ioutil.ReadAll(logs)
-	if err != nil {
-		return err
-	}
-
-	if strings.Contains(string(b), "ERROR") {
-		infraFailures <- CauseErroredVM
-	}
-
-	return nil
-}
-
-func erroredVolume(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
-	logs, err := j.BuildLog()
-	if err != nil {
-		return err
-	}
-
-	b, err := ioutil.ReadAll(logs)
-	if err != nil {
-		return err
-	}
-
-	if strings.Contains(string(b), "The volume is in error status. Please check with your cloud admin") {
-		infraFailures <- CauseErroredVolume
-	}
-
-	return nil
 }
 
 func failedTests(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
@@ -102,42 +69,6 @@ func failedTests(j job, testFailures chan<- Cause, infraFailures chan<- Cause) e
 		if tc.Failure != nil {
 			testFailures <- Cause(tc.Name)
 		}
-	}
-
-	return nil
-}
-
-func machineTimeout(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
-	logs, err := j.BuildLog()
-	if err != nil {
-		return err
-	}
-
-	b, err := ioutil.ReadAll(logs)
-	if err != nil {
-		return err
-	}
-
-	if strings.Contains(string(b), "timeout while waiting for state to become 'ACTIVE' (last state: 'BUILD', timeout: 30m0s)") {
-		infraFailures <- CauseMachineTimeout
-	}
-
-	return nil
-}
-
-func oauthWellKnown(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
-	logs, err := j.BuildLog()
-	if err != nil {
-		return err
-	}
-
-	b, err := ioutil.ReadAll(logs)
-	if err != nil {
-		return err
-	}
-
-	if strings.Contains(string(b), "Cluster operator authentication Progressing is True with ProgressingWellKnownNotReady: Progressing: got '404 Not Found' status while trying to GET the OAuth well-known") {
-		infraFailures <- CauseClusterTimeout
 	}
 
 	return nil

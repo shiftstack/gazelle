@@ -7,19 +7,36 @@ import (
 
 var (
 	rules = []Rule{
-		RuleFunc(erroredMachine),
-		RuleFunc(erroredNode),
-		RuleFunc(erroredVolume),
-		RuleFunc(failedTests),
-		RuleFunc(machineTimeout),
-		RuleFunc(oauthWellKnown),
-		RuleFunc(erroredVmAtBoot),
+		infraFailureIfMatchBuildLogs(
+			"to become ready: unexpected state 'ERROR', wanted target 'ACTIVE'. last error",
+			CauseErroredVM,
+		),
+
+		infraFailureIfMatchBuildLogs(
+			"The volume is in error status. Please check with your cloud admin",
+			CauseErroredVolume,
+		),
+
+		infraFailureIfMatchBuildLogs(
+			"Cluster operator authentication Progressing is True with ProgressingWellKnownNotReady: Progressing: got '404 Not Found' status while trying to GET the OAuth well-known",
+			CauseClusterTimeout,
+		),
+
+		infraFailureIfMatchMachines(
+			`"machine.openshift.io/instance-state": "ERROR"`,
+			CauseErroredVM,
+		),
+
+		infraFailureIfMatchNodes(
+			"ERROR",
+			CauseErroredVM,
+		),
+
+		failedTests,
 	}
 )
 
-type Rule interface {
-	Apply(j job, testFailure chan<- Cause, infraFailure chan<- Cause) error
-}
+type Rule func(j job, testFailure chan<- Cause, infraFailure chan<- Cause) error
 
 type job interface {
 	Result() (string, error)
@@ -47,7 +64,7 @@ func Find(j job) (<-chan Cause, <-chan Cause, <-chan error) {
 	for _, rule := range rules {
 		wg.Add(1)
 		go func(rule Rule) {
-			if err := rule.Apply(j, testFailures, infraFailures); err != nil {
+			if err := rule(j, testFailures, infraFailures); err != nil {
 				errs <- err
 			}
 			wg.Done()
