@@ -32,6 +32,24 @@ func erroredMachine(j job, testFailures chan<- Cause, infraFailures chan<- Cause
 	return nil
 }
 
+func erroredVmAtBoot(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
+	logs, err := j.BuildLog()
+	if err != nil {
+		return err
+	}
+
+	b, err := ioutil.ReadAll(logs)
+	if err != nil {
+		return err
+	}
+
+	if strings.Contains(string(b), "to become ready: unexpected state 'ERROR', wanted target 'ACTIVE'. last error") {
+		infraFailures <- CauseErroredVM
+	}
+
+	return nil
+}
+
 func erroredNode(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
 	logs, err := j.Nodes()
 	if err != nil {

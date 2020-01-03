@@ -13,6 +13,7 @@ var (
 		RuleFunc(failedTests),
 		RuleFunc(machineTimeout),
 		RuleFunc(oauthWellKnown),
+		RuleFunc(erroredVmAtBoot),
 	}
 )
 
