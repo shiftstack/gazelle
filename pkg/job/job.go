@@ -28,11 +28,7 @@ func (j *Job) fetch(file string) (io.Reader, error) {
 	if j.cache == nil {
 		j.cache = new(cache.Cache)
 	}
-	if r, ok := j.cache.Get(file); ok {
-		return r, nil
-	}
-
-	return j.cache.Fetch(file)
+	return j.cache.Get(file)
 }
 
 func (j Job) StartTime() (time.Time, error) {

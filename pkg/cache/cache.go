@@ -9,27 +9,24 @@ import (
 )
 
 type Cache struct {
-	sync.RWMutex
+	sync.Mutex
 	cache map[string][]byte
 
 	client http.Client
 }
 
-func (c *Cache) Get(url string) (io.Reader, bool) {
-	c.RLock()
-	defer c.RUnlock()
-
-	r, ok := c.cache[url]
-
-	return bytes.NewReader(r), ok
-}
-
-func (c *Cache) Fetch(url string) (io.Reader, error) {
+func (c *Cache) Get(url string) (io.Reader, error) {
 	c.Lock()
 	defer c.Unlock()
 
+	// Initialise the map if this is the first call
 	if c.cache == nil {
 		c.cache = make(map[string][]byte)
+	}
+
+	// Return the cached content if it's available
+	if r, ok := c.cache[url]; ok {
+		return bytes.NewReader(r), nil
 	}
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
