@@ -112,7 +112,12 @@ func (j Job) JUnitURL() (string, error) {
 		return "", err
 	}
 
+	// The default scanner buffer (60*1024 bytes) is too short for some
+	// build logs. This sets the initial buffer capacity to the package
+	// default, but a higher maximum value.
 	scanner := bufio.NewScanner(buildLog)
+	scanner.Buffer(make([]byte, 0, 64*1024), 256*1024)
+
 	for scanner.Scan() {
 		line := scanner.Text()
 		if len(line) >= targetLength && line[:len(target)] == target {
