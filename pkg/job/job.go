@@ -116,7 +116,7 @@ func (j Job) JUnitURL() (string, error) {
 	// build logs. This sets the initial buffer capacity to the package
 	// default, but a higher maximum value.
 	scanner := bufio.NewScanner(buildLog)
-	scanner.Buffer(make([]byte, 0, 64*1024), 256*1024)
+	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
 
 	for scanner.Scan() {
 		line := scanner.Text()
