@@ -69,6 +69,7 @@ func main() {
 		rootCause := testFailures
 		if len(infraFailures) > 0 {
 			rootCause = infraFailures
+			result = "INFRA FAILURE"
 		}
 
 		var s strings.Builder
