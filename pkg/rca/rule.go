@@ -13,7 +13,8 @@ func infraFailureIfMatchBuildLogs(expr string, cause Cause) Rule {
 	return func(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
 		f, err := j.BuildLog()
 		if err != nil {
-			return err
+			infraFailures <- Cause("Failed to get build log: " + err.Error())
+			return nil
 		}
 
 		if re.MatchReader(bufio.NewReader(f)) {
@@ -28,7 +29,8 @@ func infraFailureIfMatchMachines(expr string, cause Cause) Rule {
 	return func(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
 		f, err := j.Machines()
 		if err != nil {
-			return err
+			infraFailures <- Cause("Failed to get Machines information: " + err.Error())
+			return nil
 		}
 
 		if re.MatchReader(bufio.NewReader(f)) {
@@ -43,7 +45,8 @@ func infraFailureIfMatchNodes(expr string, cause Cause) Rule {
 	return func(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
 		f, err := j.Nodes()
 		if err != nil {
-			return err
+			infraFailures <- Cause("Failed to get OpenStack Nodes information: " + err.Error())
+			return nil
 		}
 
 		if re.MatchReader(bufio.NewReader(f)) {
