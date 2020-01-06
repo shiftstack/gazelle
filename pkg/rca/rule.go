@@ -59,7 +59,7 @@ func infraFailureIfMatchNodes(expr string, cause Cause) Rule {
 func failedTests(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
 	f, err := j.JUnit()
 	if err != nil {
-		infraFailures <- Cause("Error parsing the JUnit file: " + err.Error())
+		testFailures <- Cause("Error parsing the JUnit file: " + err.Error())
 		return nil
 	}
 
