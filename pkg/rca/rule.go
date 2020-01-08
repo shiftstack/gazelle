@@ -18,7 +18,12 @@ func infraFailureIfMatchBuildLogs(expr string, cause Cause) Rule {
 		}
 
 		if re.MatchReader(bufio.NewReader(f)) {
-			infraFailures <- cause
+			switch cause {
+			case CauseClusterTimeout:
+				testFailures <- cause
+			default:
+				infraFailures <- cause
+			}
 		}
 		return nil
 	}
