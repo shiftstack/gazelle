@@ -46,29 +46,30 @@ func main() {
 			panic(err)
 		}
 
-		testFailuresCh, infraFailuresCh, errs := rca.Find(j)
+		failures, errs := rca.Find(j)
 
+		var wg sync.WaitGroup
+		wg.Add(1)
 		// panic at the first error
 		go func() {
 			for err := range errs {
 				panic(err)
 			}
+			wg.Done()
 		}()
 
-		var wg sync.WaitGroup
-		wg.Add(2)
 		var (
 			testFailures  []string
 			infraFailures []string
 		)
-		go func() {
-			testFailures = reduceFailures(testFailuresCh)
-			wg.Done()
-		}()
-		go func() {
-			infraFailures = reduceFailures(infraFailuresCh)
-			wg.Done()
-		}()
+		for failure := range failures {
+			if failure.IsInfra() {
+				infraFailures = append(infraFailures, failure.String())
+			}
+			testFailures = append(testFailures, failure.String())
+		}
+
+		// Wait for the error handling to occur
 		wg.Wait()
 
 		rootCause := testFailures
@@ -96,14 +97,6 @@ func main() {
 		}
 		fmt.Println(s.String())
 	}
-}
-
-func reduceFailures(failures <-chan rca.Cause) []string {
-	var out []string
-	for failure := range failures {
-		out = append(out, string(failure))
-	}
-	return out
 }
 
 func init() {

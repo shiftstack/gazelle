@@ -11,20 +11,15 @@ import (
 
 func infraFailureIfMatchBuildLogs(expr string, cause Cause) Rule {
 	re := regexp.MustCompile(expr)
-	return func(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
+	return func(j job, failures chan<- Cause) error {
 		f, err := j.BuildLog()
 		if err != nil {
-			infraFailures <- Cause("Failed to get build log: " + err.Error())
+			failures <- Cause("Failed to get build log: " + err.Error())
 			return nil
 		}
 
 		if re.MatchReader(bufio.NewReader(f)) {
-			switch cause {
-			case CauseClusterTimeout:
-				testFailures <- cause
-			default:
-				infraFailures <- cause
-			}
+			failures <- cause
 		}
 		return nil
 	}
@@ -32,15 +27,15 @@ func infraFailureIfMatchBuildLogs(expr string, cause Cause) Rule {
 
 func infraFailureIfMatchMachines(expr string, cause Cause) Rule {
 	re := regexp.MustCompile(expr)
-	return func(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
+	return func(j job, failures chan<- Cause) error {
 		f, err := j.Machines()
 		if err != nil {
-			infraFailures <- Cause("Failed to get Machines information: " + err.Error())
+			failures <- Cause("Failed to get Machines information: " + err.Error())
 			return nil
 		}
 
 		if re.MatchReader(bufio.NewReader(f)) {
-			infraFailures <- cause
+			failures <- cause
 		}
 		return nil
 	}
@@ -48,25 +43,25 @@ func infraFailureIfMatchMachines(expr string, cause Cause) Rule {
 
 func infraFailureIfMatchNodes(expr string, cause Cause) Rule {
 	re := regexp.MustCompile(expr)
-	return func(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
+	return func(j job, failures chan<- Cause) error {
 		f, err := j.Nodes()
 		if err != nil {
-			infraFailures <- Cause("Failed to get OpenStack Nodes information: " + err.Error())
+			failures <- Cause("Failed to get OpenStack Nodes information: " + err.Error())
 			return nil
 		}
 
 		if re.MatchReader(bufio.NewReader(f)) {
-			infraFailures <- cause
+			failures <- cause
 		}
 		return nil
 	}
 }
 
-func failedTests(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
+func failedTests(j job, failures chan<- Cause) error {
 	f, err := j.JUnit()
 	if err != nil {
 		if err != io.EOF {
-			testFailures <- Cause("Error parsing the JUnit file: " + err.Error())
+			failures <- Cause("Error parsing the JUnit file: " + err.Error())
 		}
 		return nil
 	}
@@ -78,7 +73,7 @@ func failedTests(j job, testFailures chan<- Cause, infraFailures chan<- Cause) e
 
 	for _, tc := range testSuite.TestCases {
 		if tc.Failure != nil {
-			testFailures <- Cause(tc.Name)
+			failures <- Cause(tc.Name)
 		}
 	}
 
