@@ -12,7 +12,7 @@ The rules are coded in `pkg/rca/rule.go`. When new rules are coded, and add them
 
 ```shell
 go build ./cmd/cireport
-./cireport -job e2e-openstack-serial -target 4.2 -from 345 -to 346
+./cireport -job e2e-openstack-serial -target 4.2 -id 346-345
 ```
 
 ```HTML
@@ -23,5 +23,5 @@ go build ./cmd/cireport
 This command gets entries ready for pasting into the spreadsheet, given `$CLIPBOARD-COPY` your favourite clipboard "copy" command:
 
 ```shell
-./cireport -job e2e-openstack-serial -target 4.2 -from 345 -to 346 | tee /dev/stderr | tac | "$CLIPBOARD-COPY"
+./cireport -job e2e-openstack-serial -target 4.2 -id 346-345 | tee /dev/stderr | "$CLIPBOARD-COPY"
 ```
