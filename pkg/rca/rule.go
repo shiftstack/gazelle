@@ -3,6 +3,7 @@ package rca
 import (
 	"bufio"
 	"encoding/xml"
+	"io"
 	"regexp"
 
 	"github.com/pierreprinetti/go-junit"
@@ -64,7 +65,9 @@ func infraFailureIfMatchNodes(expr string, cause Cause) Rule {
 func failedTests(j job, testFailures chan<- Cause, infraFailures chan<- Cause) error {
 	f, err := j.JUnit()
 	if err != nil {
-		testFailures <- Cause("Error parsing the JUnit file: " + err.Error())
+		if err != io.EOF {
+			testFailures <- Cause("Error parsing the JUnit file: " + err.Error())
+		}
 		return nil
 	}
 
