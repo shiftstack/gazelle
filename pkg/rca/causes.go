@@ -8,3 +8,17 @@ const (
 	CauseMachineTimeout Cause = "Provisioned VM in BUILD state after 30m0s"
 	CauseClusterTimeout Cause = "Timeout waiting for cluster to initialize"
 )
+
+func (c Cause) IsInfra() bool {
+	switch c {
+	case CauseErroredVM, CauseErroredVolume, CauseMachineTimeout:
+		return true
+	default:
+		return false
+	}
+}
+
+// String implements fmt.Stringer
+func (c Cause) String() string {
+	return string(c)
+}
