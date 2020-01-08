@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/pierreprinetti/go-sequence"
 	"github.com/shiftstack/gazelle/pkg/job"
 	"github.com/shiftstack/gazelle/pkg/rca"
 )
@@ -14,12 +15,16 @@ import (
 var (
 	jobName string
 	target  string
-	from    int
-	to      int
+	jobIDs  string
 )
 
 func main() {
-	for i := from; i <= to; i++ {
+	ids, err := sequence.Int(jobIDs)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, i := range ids {
 		j := job.Job{
 			Name:   jobName,
 			Target: target,
@@ -104,8 +109,7 @@ func reduceFailures(failures <-chan rca.Cause) []string {
 func init() {
 	flag.StringVar(&jobName, "job", "", "Name of the test job")
 	flag.StringVar(&target, "target", "", "Target OpenShift version")
-	flag.IntVar(&from, "from", 1, "First job to fetch")
-	flag.IntVar(&to, "to", 1, "Last job to fetch")
+	flag.StringVar(&jobIDs, "id", "", "Job IDs")
 
 	flag.Parse()
 }
