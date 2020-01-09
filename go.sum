@@ -1,4 +1,4 @@
-github.com/pierreprinetti/go-junit v0.0.0-20191108173055-e4de85df7371 h1:t86ZIpYAE8GvvhsZLrjY6LAwi6K0tIGX/vf0AoUeY54=
-github.com/pierreprinetti/go-junit v0.0.0-20191108173055-e4de85df7371/go.mod h1:RXr9e/v6e6B7fH3thOugnnsIQx5CXue8QnOZbpiu7x8=
+github.com/pierreprinetti/go-junit v0.0.0-20200108094957-ad855a39c943 h1:lhEPLkuWNxfnTFgq4XDvzC/1d8KzANP3snJb8XuDLZA=
+github.com/pierreprinetti/go-junit v0.0.0-20200108094957-ad855a39c943/go.mod h1:RXr9e/v6e6B7fH3thOugnnsIQx5CXue8QnOZbpiu7x8=
 github.com/pierreprinetti/go-sequence v0.0.0-20200108083045-8b6bac83cb4f h1:xS9ZgTgp1KEpHBwR0s9eZFWCd7y7dKAJsIVxuKN8nZ0=
 github.com/pierreprinetti/go-sequence v0.0.0-20200108083045-8b6bac83cb4f/go.mod h1:Ns7OsLh2u5GA5q5gFZ17hl1EmnNticMRek5vWQqSRKk=
