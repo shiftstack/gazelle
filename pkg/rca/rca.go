@@ -33,6 +33,11 @@ var (
 		),
 
 		infraFailureIfMatchBuildLogs(
+			"failed to initialize the cluster: Multiple errors are preventing progress",
+			CauseClusterTimeout,
+		),
+
+		infraFailureIfMatchBuildLogs(
 			"failed: unable to import latest release image",
 			CauseReleaseImage,
 		),
