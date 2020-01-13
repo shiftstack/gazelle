@@ -22,6 +22,11 @@ var (
 			CauseClusterTimeout,
 		),
 
+		infraFailureIfMatchBuildLogs(
+			"failed: unable to import latest release image",
+			CauseReleaseImage,
+		),
+
 		infraFailureIfMatchMachines(
 			`"machine.openshift.io/instance-state": "ERROR"`,
 			CauseErroredVM,

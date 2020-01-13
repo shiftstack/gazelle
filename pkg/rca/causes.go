@@ -7,11 +7,12 @@ const (
 	CauseErroredVolume  Cause = "Provisioned Volume in ERROR state"
 	CauseMachineTimeout Cause = "Provisioned VM in BUILD state after 30m0s"
 	CauseClusterTimeout Cause = "Timeout waiting for cluster to initialize"
+	CauseReleaseImage   Cause = "Unable to import release image"
 )
 
 func (c Cause) IsInfra() bool {
 	switch c {
-	case CauseErroredVM, CauseErroredVolume, CauseMachineTimeout:
+	case CauseErroredVM, CauseErroredVolume, CauseMachineTimeout, CauseReleaseImage:
 		return true
 	default:
 		return false
