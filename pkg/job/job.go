@@ -12,6 +12,9 @@ import (
 	"github.com/shiftstack/gazelle/pkg/cache"
 )
 
+var jobTargetRexexp = regexp.MustCompile(`release-openshift-(ocp|origin)-installer-(.*)-\d.\d`);
+
+
 type Job struct {
 	FullName string
 	Target string
@@ -34,8 +37,7 @@ func (j *Job) fetch(file string) (io.Reader, error) {
 }
 
 func (j *Job) Name() (string, error) {
-	re := regexp.MustCompile(`release-openshift-(ocp|origin)-installer-(.*)-\d.\d`);
-	matches := re.FindStringSubmatch(j.FullName);
+	matches := jobTargetRexexp.FindStringSubmatch(j.FullName);
 
 	if (len(matches) >= 3) {
 		return matches[2], nil
