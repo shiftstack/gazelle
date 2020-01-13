@@ -5,13 +5,18 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"regexp"
 	"time"
+	"fmt"
 
 	"github.com/shiftstack/gazelle/pkg/cache"
 )
 
+var jobTargetRexexp = regexp.MustCompile(`release-openshift-(ocp|origin)-installer-(.*)-\d.\d`);
+
+
 type Job struct {
-	Name   string
+	FullName string
 	Target string
 	ID     string
 
@@ -21,7 +26,7 @@ type Job struct {
 }
 
 func (j Job) baseURL() string {
-	return "https://storage.googleapis.com/origin-ci-test/logs/release-openshift-ocp-installer-" + j.Name + "-" + j.Target + "/" + j.ID
+	return "https://storage.googleapis.com/origin-ci-test/logs/" + j.FullName + "/" + j.ID
 }
 
 func (j *Job) fetch(file string) (io.Reader, error) {
@@ -29,6 +34,16 @@ func (j *Job) fetch(file string) (io.Reader, error) {
 		j.cache = new(cache.Cache)
 	}
 	return j.cache.Get(file)
+}
+
+func (j *Job) Name() (string, error) {
+	matches := jobTargetRexexp.FindStringSubmatch(j.FullName);
+
+	if (len(matches) >= 3) {
+		return matches[2], nil
+	} else {
+		return "", fmt.Errorf("Could not determine job name from %s", j.FullName)
+	}
 }
 
 func (j Job) StartTime() (time.Time, error) {
@@ -81,24 +96,40 @@ func (j Job) BuildLog() (io.Reader, error) {
 	return j.fetch(j.BuildLogURL())
 }
 
-func (j Job) MachinesURL() string {
-	return j.baseURL() + "/artifacts/" + j.Name + "/machines.json"
+func (j Job) MachinesURL() (string, error) {
+	name, err := j.Name()
+	if err != nil {
+		return "", err
+	}
+	return j.baseURL() + "/artifacts/" + name + "/machines.json", nil
 }
 
 func (j Job) Machines() (io.Reader, error) {
-	return j.fetch(j.MachinesURL())
+	url, err := j.MachinesURL()
+	if err != nil {
+		return nil, err
+	}
+	return j.fetch(url)
 }
 
-func (j Job) NodesURL() string {
-	return j.baseURL() + "/artifacts/" + j.Name + "/openstack_nodes.log"
+func (j Job) NodesURL() (string, error) {
+	name, err := j.Name()
+	if err != nil {
+		return "", err
+	}
+	return j.baseURL() + "/artifacts/" + name + "/openstack_nodes.log", nil
 }
 
 func (j Job) Nodes() (io.Reader, error) {
-	return j.fetch(j.NodesURL())
+	url, err := j.NodesURL()
+	if err != nil {
+		return nil, err
+	}
+	return j.fetch(url)
 }
 
 func (j Job) JobURL() string {
-	return "https://prow.svc.ci.openshift.org/view/gcs/origin-ci-test/logs/release-openshift-ocp-installer-" + j.Name + "-" + j.Target + "/" + j.ID
+	return "https://prow.svc.ci.openshift.org/view/gcs/origin-ci-test/logs/" + j.FullName + "/" + j.ID
 }
 
 func (j Job) JUnitURL() (string, error) {
@@ -118,11 +149,16 @@ func (j Job) JUnitURL() (string, error) {
 	scanner := bufio.NewScanner(buildLog)
 	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
 
+	var jobName string;
+	jobName, err = j.Name()
+	if err != nil {
+		return "", err
+	}
 	for scanner.Scan() {
 		line := scanner.Text()
 		if len(line) >= targetLength && line[:len(target)] == target {
 			filename := line[len(target):]
-			return j.baseURL() + "/artifacts/" + j.Name + "/junit/" + filename, scanner.Err()
+			return j.baseURL() + "/artifacts/" + jobName + "/junit/" + filename, scanner.Err()
 		}
 	}
 

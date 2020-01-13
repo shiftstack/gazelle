@@ -13,8 +13,7 @@ import (
 )
 
 var (
-	jobName string
-	target  string
+	fullJobName string
 	jobIDs  string
 )
 
@@ -26,8 +25,7 @@ func main() {
 
 	for _, i := range ids {
 		j := job.Job{
-			Name:   jobName,
-			Target: target,
+			FullName: fullJobName,
 			ID:     strconv.Itoa(i),
 		}
 
@@ -78,6 +76,17 @@ func main() {
 			result = "INFRA FAILURE"
 		}
 
+		var machinesURL string
+		machinesURL, err = j.MachinesURL()
+		if err != nil {
+			panic(err)
+		}
+		var nodesURL string
+		nodesURL, err = j.NodesURL()
+		if err != nil {
+			panic(err)
+		}
+
 		var s strings.Builder
 		{
 			s.WriteString(`<meta http-equiv="content-type" content="text/html; charset=utf-8"><meta name="generator" content="cireport"/><table xmlns="http://www.w3.org/1999/xhtml"><tbody><tr><td>`)
@@ -88,8 +97,8 @@ func main() {
 				result,
 				"",
 				`<a href="` + j.BuildLogURL() + `">` + j.BuildLogURL() + `</a>`,
-				`<a href="` + j.MachinesURL() + `">` + j.MachinesURL() + `</a>`,
-				`<a href="` + j.NodesURL() + `">` + j.NodesURL() + `</a>`,
+				`<a href="` + machinesURL + `">` + machinesURL + `</a>`,
+				`<a href="` + nodesURL + `">` + nodesURL + `</a>`,
 				"cireport",
 				strings.Join(rootCause, "<br />"),
 			}, "</td><td>"))
@@ -100,8 +109,7 @@ func main() {
 }
 
 func init() {
-	flag.StringVar(&jobName, "job", "", "Name of the test job")
-	flag.StringVar(&target, "target", "", "Target OpenShift version")
+	flag.StringVar(&fullJobName, "job", "", "Full name of the test job (e.g. release-openshift-ocp-installer-e2e-openstack-serial-4.4)")
 	flag.StringVar(&jobIDs, "id", "", "Job IDs")
 
 	flag.Parse()
