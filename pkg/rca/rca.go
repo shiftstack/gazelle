@@ -28,6 +28,11 @@ var (
 		),
 
 		infraFailureIfMatchBuildLogs(
+			"failed to initialize the cluster: Working towards",
+			CauseClusterTimeout,
+		),
+
+		infraFailureIfMatchBuildLogs(
 			"failed: unable to import latest release image",
 			CauseReleaseImage,
 		),
