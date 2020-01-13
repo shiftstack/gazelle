@@ -23,6 +23,11 @@ var (
 		),
 
 		infraFailureIfMatchBuildLogs(
+			"failed to initialize the cluster: Cluster operator [\\w-]+ is still updating",
+			CauseClusterTimeout,
+		),
+
+		infraFailureIfMatchBuildLogs(
 			"failed: unable to import latest release image",
 			CauseReleaseImage,
 		),
