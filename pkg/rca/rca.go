@@ -13,6 +13,11 @@ var (
 		),
 
 		infraFailureIfMatchBuildLogs(
+			"to become ready: timeout while waiting for state to become 'ACTIVE'",
+			CauseErroredVM,
+		),
+
+		infraFailureIfMatchBuildLogs(
 			"The volume is in error status. Please check with your cloud admin",
 			CauseErroredVolume,
 		),
