@@ -3,22 +3,21 @@ package job
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"regexp"
 	"time"
-	"fmt"
 
 	"github.com/shiftstack/gazelle/pkg/cache"
 )
 
-var jobTargetRexexp = regexp.MustCompile(`release-openshift-(ocp|origin)-installer-(.*)-\d.\d`);
-
+var jobTargetRexexp = regexp.MustCompile(`release-openshift-(ocp|origin)-installer-(.*)-\d.\d`)
 
 type Job struct {
 	FullName string
-	Target string
-	ID     string
+	Target   string
+	ID       string
 
 	client http.Client
 
@@ -37,9 +36,9 @@ func (j *Job) fetch(file string) (io.Reader, error) {
 }
 
 func (j *Job) Name() (string, error) {
-	matches := jobTargetRexexp.FindStringSubmatch(j.FullName);
+	matches := jobTargetRexexp.FindStringSubmatch(j.FullName)
 
-	if (len(matches) >= 3) {
+	if len(matches) >= 3 {
 		return matches[2], nil
 	} else {
 		return "", fmt.Errorf("Could not determine job name from %s", j.FullName)
@@ -149,7 +148,7 @@ func (j Job) JUnitURL() (string, error) {
 	scanner := bufio.NewScanner(buildLog)
 	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
 
-	var jobName string;
+	var jobName string
 	jobName, err = j.Name()
 	if err != nil {
 		return "", err
