@@ -1,0 +1,14 @@
+language: go
+
+env:
+  global:
+    - GO111MODULE=on
+
+jobs:
+  include:
+    - name: "cireport compiles"
+      script:
+        - "go build ./cmd/cireport"
+    - name: "gofmt"
+      script:
+        - 'if [[ "$(gofmt -l ./ | tee /tmp/gazelle-gofmt | wc -l)" -gt 0 ]]; then { echo "Run gofmt on these files:" | cat - /tmp/gazelle-gofmt; return 1; }; fi'
