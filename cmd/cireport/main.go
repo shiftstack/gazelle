@@ -15,7 +15,7 @@ import (
 
 var (
 	fullJobName string
-	jobIDs  string
+	jobIDs      string
 )
 
 func main() {
@@ -27,7 +27,7 @@ func main() {
 	for _, i := range ids {
 		j := job.Job{
 			FullName: fullJobName,
-			ID:     strconv.Itoa(i),
+			ID:       strconv.Itoa(i),
 		}
 
 		startedAt, err := j.StartTime()
