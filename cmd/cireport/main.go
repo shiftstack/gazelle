@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/pierreprinetti/go-sequence"
 	"github.com/shiftstack/gazelle/pkg/job"
@@ -36,12 +37,12 @@ func main() {
 
 		finishedAt, err := j.FinishTime()
 		if err != nil {
-			panic(err)
+			finishedAt = time.Now().Round(time.Second)
 		}
 
 		result, err := j.Result()
 		if err != nil {
-			panic(err)
+			result = "Pending"
 		}
 
 		failures, errs := rca.Find(j)
