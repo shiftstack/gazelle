@@ -24,10 +24,10 @@ func main() {
 		panic(err)
 	}
 
-	for _, i := range ids {
+	for i := len(ids) - 1; i >= 0; i-- {
 		j := job.Job{
 			FullName: fullJobName,
-			ID:       strconv.Itoa(i),
+			ID:       strconv.Itoa(ids[i]),
 		}
 
 		startedAt, err := j.StartTime()
