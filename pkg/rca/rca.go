@@ -7,54 +7,64 @@ import (
 
 var (
 	rules = []Rule{
-		infraFailureIfMatchBuildLogs(
+		ifMatchBuildLogs(
 			"to become ready: unexpected state 'ERROR', wanted target 'ACTIVE'. last error",
 			CauseErroredVM,
 		),
 
-		infraFailureIfMatchBuildLogs(
+		ifMatchBuildLogs(
 			"to become ready: timeout while waiting for state to become 'ACTIVE'",
 			CauseErroredVM,
 		),
 
-		infraFailureIfMatchBuildLogs(
+		ifMatchBuildLogs(
 			"The volume is in error status. Please check with your cloud admin",
 			CauseErroredVolume,
 		),
 
-		infraFailureIfMatchBuildLogs(
+		ifMatchBuildLogs(
 			"Cluster operator authentication Progressing is True with ProgressingWellKnownNotReady: Progressing: got '404 Not Found' status while trying to GET the OAuth well-known",
 			CauseClusterTimeout,
 		),
 
-		infraFailureIfMatchBuildLogs(
+		ifMatchBuildLogs(
 			"failed to initialize the cluster: Cluster operator [\\w-]+ is still updating",
 			CauseClusterTimeout,
 		),
 
-		infraFailureIfMatchBuildLogs(
+		ifMatchBuildLogs(
 			"failed to initialize the cluster: Working towards",
 			CauseClusterTimeout,
 		),
 
-		infraFailureIfMatchBuildLogs(
+		ifMatchBuildLogs(
 			"failed to initialize the cluster: Multiple errors are preventing progress",
 			CauseClusterTimeout,
 		),
 
-		infraFailureIfMatchBuildLogs(
+		ifMatchBuildLogs(
 			"failed: unable to import latest release image",
 			CauseReleaseImage,
 		),
 
-		infraFailureIfMatchMachines(
+		ifMatchMachines(
 			`"machine.openshift.io/instance-state": "ERROR"`,
 			CauseErroredVM,
 		),
 
-		infraFailureIfMatchNodes(
+		ifMatchNodes(
 			"ERROR",
 			CauseErroredVM,
+		),
+
+		ifMatchBuildLogs(
+			`Quota exceeded for resources: \['router'\]`,
+			CauseQuota("router"),
+		),
+
+		ifMatchBuildLogs(
+			"VolumeSizeExceedsAvailableQuota: Requested volume or snapshot exceeds allowed gigabytes quota",
+			CauseQuota("volume size"),
 		),
 
 		failedTests,

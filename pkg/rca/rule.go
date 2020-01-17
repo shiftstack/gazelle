@@ -9,12 +9,12 @@ import (
 	"github.com/pierreprinetti/go-junit"
 )
 
-func infraFailureIfMatchBuildLogs(expr string, cause Cause) Rule {
+func ifMatchBuildLogs(expr string, cause Cause) Rule {
 	re := regexp.MustCompile(expr)
 	return func(j job, failures chan<- Cause) error {
 		f, err := j.BuildLog()
 		if err != nil {
-			failures <- Cause("Failed to get build log: " + err.Error())
+			failures <- CauseGeneric("Failed to get build log: " + err.Error())
 			return nil
 		}
 
@@ -25,12 +25,12 @@ func infraFailureIfMatchBuildLogs(expr string, cause Cause) Rule {
 	}
 }
 
-func infraFailureIfMatchMachines(expr string, cause Cause) Rule {
+func ifMatchMachines(expr string, cause Cause) Rule {
 	re := regexp.MustCompile(expr)
 	return func(j job, failures chan<- Cause) error {
 		f, err := j.Machines()
 		if err != nil {
-			failures <- Cause("Failed to get Machines information: " + err.Error())
+			failures <- CauseGeneric("Failed to get Machines information: " + err.Error())
 			return nil
 		}
 
@@ -41,12 +41,12 @@ func infraFailureIfMatchMachines(expr string, cause Cause) Rule {
 	}
 }
 
-func infraFailureIfMatchNodes(expr string, cause Cause) Rule {
+func ifMatchNodes(expr string, cause Cause) Rule {
 	re := regexp.MustCompile(expr)
 	return func(j job, failures chan<- Cause) error {
 		f, err := j.Nodes()
 		if err != nil {
-			failures <- Cause("Failed to get OpenStack Nodes information: " + err.Error())
+			failures <- CauseGeneric("Failed to get OpenStack Nodes information: " + err.Error())
 			return nil
 		}
 
@@ -61,7 +61,7 @@ func failedTests(j job, failures chan<- Cause) error {
 	f, err := j.JUnit()
 	if err != nil {
 		if err != io.EOF {
-			failures <- Cause("Error parsing the JUnit file: " + err.Error())
+			failures <- CauseGeneric("Error parsing the JUnit file: " + err.Error())
 		}
 		return nil
 	}
@@ -72,13 +72,13 @@ func failedTests(j job, failures chan<- Cause) error {
 	}
 
 	if len(testSuite.TestCases) > 10 {
-		failures <- Cause("More than 10 failed tests")
+		failures <- CauseGeneric("More than 10 failed tests")
 		return nil
 	}
 
 	for _, tc := range testSuite.TestCases {
 		if tc.Failure != nil {
-			failures <- Cause(tc.Name)
+			failures <- CauseGeneric(tc.Name)
 		}
 	}
 
