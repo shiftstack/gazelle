@@ -38,3 +38,14 @@ func (c CauseInfra) IsInfra() bool {
 func (c CauseInfra) String() string {
 	return string(c)
 }
+
+type CauseQuota string
+
+func (c CauseQuota) IsInfra() bool {
+	return true
+}
+
+// String implements fmt.Stringer
+func (c CauseQuota) String() string {
+	return "Quota exceeded for resource: " + string(c)
+}

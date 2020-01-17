@@ -57,6 +57,16 @@ var (
 			CauseErroredVM,
 		),
 
+		ifMatchBuildLogs(
+			`Quota exceeded for resources: \['router'\]`,
+			CauseQuota("router"),
+		),
+
+		ifMatchBuildLogs(
+			"VolumeSizeExceedsAvailableQuota: Requested volume or snapshot exceeds allowed gigabytes quota",
+			CauseQuota("volume size"),
+		),
+
 		failedTests,
 	}
 )
