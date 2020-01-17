@@ -1,25 +1,40 @@
 package rca
 
-type Cause string
+import "fmt"
+
+type Cause interface {
+	IsInfra() bool
+
+	fmt.Stringer
+}
 
 const (
-	CauseErroredVM      Cause = "Provisioned VM in ERROR state"
-	CauseErroredVolume  Cause = "Provisioned Volume in ERROR state"
-	CauseMachineTimeout Cause = "Provisioned VM in BUILD state after 30m0s"
-	CauseClusterTimeout Cause = "Timeout waiting for cluster to initialize"
-	CauseReleaseImage   Cause = "Unable to import release image"
+	CauseErroredVM      CauseInfra = "Provisioned VM in ERROR state"
+	CauseErroredVolume  CauseInfra = "Provisioned Volume in ERROR state"
+	CauseMachineTimeout CauseInfra = "Provisioned VM in BUILD state after 30m0s"
+	CauseReleaseImage   CauseInfra = "Unable to import release image"
+
+	CauseClusterTimeout CauseGeneric = "Timeout waiting for cluster to initialize"
 )
 
-func (c Cause) IsInfra() bool {
-	switch c {
-	case CauseErroredVM, CauseErroredVolume, CauseMachineTimeout, CauseReleaseImage:
-		return true
-	default:
-		return false
-	}
+type CauseGeneric string
+
+func (c CauseGeneric) IsInfra() bool {
+	return false
 }
 
 // String implements fmt.Stringer
-func (c Cause) String() string {
+func (c CauseGeneric) String() string {
+	return string(c)
+}
+
+type CauseInfra string
+
+func (c CauseInfra) IsInfra() bool {
+	return true
+}
+
+// String implements fmt.Stringer
+func (c CauseInfra) String() string {
 	return string(c)
 }
