@@ -71,6 +71,11 @@ func failedTests(j job, failures chan<- Cause) error {
 		return err
 	}
 
+	if len(testSuite.TestCases) > 10 {
+		failures <- Cause("More than 10 failed tests")
+		return nil
+	}
+
 	for _, tc := range testSuite.TestCases {
 		if tc.Failure != nil {
 			failures <- Cause(tc.Name)
