@@ -79,17 +79,6 @@ func main() {
 			result = "INFRA FAILURE"
 		}
 
-		var machinesURL string
-		machinesURL, err = j.MachinesURL()
-		if err != nil {
-			panic(err)
-		}
-		var nodesURL string
-		nodesURL, err = j.NodesURL()
-		if err != nil {
-			panic(err)
-		}
-
 		var s strings.Builder
 		{
 			s.WriteString(`<meta http-equiv="content-type" content="text/html; charset=utf-8"><meta name="generator" content="cireport"/><table xmlns="http://www.w3.org/1999/xhtml"><tbody><tr><td>`)
@@ -98,10 +87,7 @@ func main() {
 				startedAt.String(),
 				finishedAt.Sub(startedAt).String(),
 				result,
-				"",
 				`<a href="` + j.BuildLogURL() + `">` + j.BuildLogURL() + `</a>`,
-				`<a href="` + machinesURL + `">` + machinesURL + `</a>`,
-				`<a href="` + nodesURL + `">` + nodesURL + `</a>`,
 				username,
 				strings.Join(rootCause, "<br />"),
 			}, "</td><td>"))
