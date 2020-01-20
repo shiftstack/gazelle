@@ -11,6 +11,7 @@ import (
 	"github.com/pierreprinetti/go-sequence"
 	"github.com/shiftstack/gazelle/pkg/job"
 	"github.com/shiftstack/gazelle/pkg/rca"
+	"github.com/shiftstack/gazelle/pkg/utils"
 )
 
 var (
@@ -100,7 +101,7 @@ func main() {
 				`<a href="` + j.BuildLogURL() + `">` + j.BuildLogURL() + `</a>`,
 				`<a href="` + machinesURL + `">` + machinesURL + `</a>`,
 				`<a href="` + nodesURL + `">` + nodesURL + `</a>`,
-				"cireport",
+				utils.GetUsername(),
 				strings.Join(rootCause, "<br />"),
 			}, "</td><td>"))
 			s.WriteString(`</td></tr></tbody></table>`)
