@@ -71,9 +71,17 @@ func failedTests(j job, failures chan<- Cause) error {
 		return err
 	}
 
-	if len(testSuite.TestCases) > 10 {
-		failures <- CauseGeneric("More than 10 failed tests")
-		return nil
+	// FIXME(mandre) ideally, we should read this value from the `failures`
+	// field of the junit file, however it currently contains bogus values.
+	total_failures := 0
+	for _, tc := range testSuite.TestCases {
+		if tc.Failure != nil {
+			total_failures++
+		}
+		if total_failures > 10 {
+			failures <- CauseGeneric("More than 10 failed tests")
+			return nil
+		}
 	}
 
 	for _, tc := range testSuite.TestCases {
