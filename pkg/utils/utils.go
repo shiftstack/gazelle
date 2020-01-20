@@ -2,7 +2,7 @@ package utils
 
 import "os/user"
 
-func GetUsername() (string) {
+func GetUsername() string {
 	u, err := user.Current()
 	if err != nil {
 		return "cireport"
