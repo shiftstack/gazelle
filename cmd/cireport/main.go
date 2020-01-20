@@ -17,6 +17,7 @@ import (
 var (
 	fullJobName string
 	jobIDs      string
+	username    string
 )
 
 func main() {
@@ -101,7 +102,7 @@ func main() {
 				`<a href="` + j.BuildLogURL() + `">` + j.BuildLogURL() + `</a>`,
 				`<a href="` + machinesURL + `">` + machinesURL + `</a>`,
 				`<a href="` + nodesURL + `">` + nodesURL + `</a>`,
-				utils.GetUsername(),
+				username,
 				strings.Join(rootCause, "<br />"),
 			}, "</td><td>"))
 			s.WriteString(`</td></tr></tbody></table>`)
@@ -113,6 +114,7 @@ func main() {
 func init() {
 	flag.StringVar(&fullJobName, "job", "", "Full name of the test job (e.g. release-openshift-ocp-installer-e2e-openstack-serial-4.4)")
 	flag.StringVar(&jobIDs, "id", "", "Job IDs")
+	flag.StringVar(&username, "user", utils.GetUsername(), "Username to use for CI Cop")
 
 	flag.Parse()
 }
