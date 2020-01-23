@@ -20,8 +20,24 @@ go build ./cmd/cireport
 <meta http-equiv="content-type" content="text/html; charset=utf-8"><meta name="generator" content="cireport"/><table xmlns="http://www.w3.org/1999/xhtml"><tbody><tr><td><a href="https://prow.svc.ci.openshift.org/view/gcs/origin-ci-test/logs/release-openshift-ocp-installer-e2e-openstack-serial-4.2/346">346</a></td><td>2019-12-29 02:38:10 +0000 UTC</td><td>2h22m1s</td><td>FAILURE</td><td></td><td><a href="https://storage.googleapis.com/origin-ci-test/logs/release-openshift-ocp-installer-e2e-openstack-serial-4.2/346/build-log.txt">https://storage.googleapis.com/origin-ci-test/logs/release-openshift-ocp-installer-e2e-openstack-serial-4.2/346/build-log.txt</a></td><td><a href="https://storage.googleapis.com/origin-ci-test/logs/release-openshift-ocp-installer-e2e-openstack-serial-4.2/346/artifacts/e2e-openstack-serial/machines.json">https://storage.googleapis.com/origin-ci-test/logs/release-openshift-ocp-installer-e2e-openstack-serial-4.2/346/artifacts/e2e-openstack-serial/machines.json</a></td><td><a href="https://storage.googleapis.com/origin-ci-test/logs/release-openshift-ocp-installer-e2e-openstack-serial-4.2/346/artifacts/e2e-openstack-serial/openstack_nodes.log">https://storage.googleapis.com/origin-ci-test/logs/release-openshift-ocp-installer-e2e-openstack-serial-4.2/346/artifacts/e2e-openstack-serial/openstack_nodes.log</a></td><td>cireport</td><td>Provisioned VM in ERROR state</td></tr></tbody></table>
 ```
 
-This command gets entries ready for pasting into the spreadsheet, given `$CLIPBOARD-COPY` your favourite clipboard "copy" command:
+This command gets entries ready for pasting into the spreadsheet, given `$CLIPBOARD_COPY` your favourite clipboard "copy" command:
 
 ```shell
-./cireport -job release-openshift-ocp-installer-e2e-openstack-serial-4.2 -id 346-345 | tee /dev/stderr | "$CLIPBOARD-COPY"
+./cireport -job release-openshift-ocp-installer-e2e-openstack-serial-4.2 -id 346-345 | tee /dev/stderr | "$CLIPBOARD_COPY"
+```
+
+### Wayland
+
+If you use Wayland as your desktop environment, you can install the `wl-clipboard` package and then use the `wl-copy` tool:
+
+```shell
+export CLIPBOARD_COPY=wl-copy
+```
+
+### X11
+
+Under X11 you can use the `xclip`, but if you intend to paste the output as an XML (for example pasting it to a spreadsheet), you need to specify the content type too:
+
+```shell
+export CLIPBOARD_COPY="xclip -selection clipboard -t text/html"
 ```
