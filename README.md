@@ -31,5 +31,13 @@ This command gets entries ready for pasting into the spreadsheet, given `$CLIPBO
 If you use Wayland as your desktop environment, you can install the `wl-clipboard` package and then use the `wl-copy` tool:
 
 ```shell
-export
+export CLIPBOARD_COPY=wl-copy
+```
+
+### X11
+
+Under X11 you can use the `xclip`, but if you intend to paste the output as an XML (for example pasting it to a spreadsheet), you need to specify the content type too:
+
+```shell
+export CLIPBOARD_COPY="xclip -selection clipboard -t text/html"
 ```
