@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -34,7 +35,8 @@ func main() {
 
 		startedAt, err := j.StartTime()
 		if err != nil {
-			panic(err)
+			fmt.Fprintf(os.Stderr, "Error fetching job %d: %s\n", i, err)
+			continue
 		}
 
 		finishedAt, err := j.FinishTime()
