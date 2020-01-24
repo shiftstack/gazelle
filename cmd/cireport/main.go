@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
+	"os/user"
 	"strconv"
 	"strings"
 	"sync"
@@ -11,7 +13,6 @@ import (
 	"github.com/pierreprinetti/go-sequence"
 	"github.com/shiftstack/gazelle/pkg/job"
 	"github.com/shiftstack/gazelle/pkg/rca"
-	"github.com/shiftstack/gazelle/pkg/utils"
 )
 
 var (
@@ -100,7 +101,15 @@ func main() {
 func init() {
 	flag.StringVar(&fullJobName, "job", "", "Full name of the test job (e.g. release-openshift-ocp-installer-e2e-openstack-serial-4.4)")
 	flag.StringVar(&jobIDs, "id", "", "Job IDs")
-	flag.StringVar(&username, "user", utils.GetUsername(), "Username to use for CI Cop")
+
+	flag.StringVar(&username, "user", os.Getenv("CIREPORT_USER"), "Username to use for CI Cop")
+	if username == "" {
+		if u, err := user.Current(); err == nil {
+			username = u.Username
+		} else {
+			username = "cireport"
+		}
+	}
 
 	flag.Parse()
 }
