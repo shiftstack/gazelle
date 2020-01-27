@@ -13,6 +13,7 @@ const (
 	CauseErroredVolume  CauseInfra = "Provisioned Volume in ERROR state"
 	CauseMachineTimeout CauseInfra = "Provisioned VM in BUILD state after 30m0s"
 	CauseReleaseImage   CauseInfra = "Unable to import release image"
+	CauseRoute53        CauseInfra = "Route53 failure"
 
 	CauseClusterTimeout CauseGeneric = "Timeout waiting for cluster to initialize"
 )

@@ -67,6 +67,11 @@ var (
 			CauseQuota("volume size"),
 		),
 
+		ifMatchBuildLogs(
+			`when calling the ChangeResourceRecordSets operation`,
+			CauseRoute53,
+		),
+
 		failedTests,
 	}
 )
