@@ -47,6 +47,11 @@ var (
 			CauseReleaseImage,
 		),
 
+		ifMatchBuildLogs(
+			"failed: unable to find the '[\\w-]+' image in the provided release image",
+			CauseReleaseImage,
+		),
+
 		ifMatchMachines(
 			`"machine.openshift.io/instance-state": "ERROR"`,
 			CauseErroredVM,
