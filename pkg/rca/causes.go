@@ -11,6 +11,7 @@ type Cause interface {
 const (
 	CauseErroredVM      CauseInfra = "Provisioned VM in ERROR state"
 	CauseErroredVolume  CauseInfra = "Provisioned Volume in ERROR state"
+	CauseLeaseFailure   CauseInfra = "Failed to acquire lease"
 	CauseMachineTimeout CauseInfra = "Provisioned VM in BUILD state after 30m0s"
 	CauseReleaseImage   CauseInfra = "Unable to import release image"
 	CauseRoute53        CauseInfra = "Route53 failure"

@@ -77,6 +77,11 @@ var (
 			CauseRoute53,
 		),
 
+		ifMatchBuildLogs(
+			`failed to acquire lease`,
+			CauseLeaseFailure,
+		),
+
 		failedTests,
 	}
 )
