@@ -16,7 +16,8 @@ const (
 	CauseReleaseImage   CauseInfra = "Unable to import release image"
 	CauseRoute53        CauseInfra = "Route53 failure"
 
-	CauseClusterTimeout CauseGeneric = "Timeout waiting for cluster to initialize"
+	CauseBootstrapTimeout CauseGeneric = "Timeout waiting for bootstrap to initialize"
+	CauseClusterTimeout   CauseGeneric = "Timeout waiting for cluster to initialize"
 )
 
 type CauseGeneric string

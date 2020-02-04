@@ -43,6 +43,11 @@ var (
 		),
 
 		ifMatchBuildLogs(
+			"failed to wait for bootstrapping to complete",
+			CauseBootstrapTimeout,
+		),
+
+		ifMatchBuildLogs(
 			"failed: unable to import latest release image",
 			CauseReleaseImage,
 		),
