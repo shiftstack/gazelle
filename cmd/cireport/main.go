@@ -7,7 +7,6 @@ import (
 	"os/user"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/pierreprinetti/go-sequence"
@@ -48,31 +47,16 @@ func main() {
 			result = "Pending"
 		}
 
-		failures, errs := rca.Find(j)
-
-		var wg sync.WaitGroup
-		wg.Add(1)
-		// panic at the first error
-		go func() {
-			for err := range errs {
-				panic(err)
-			}
-			wg.Done()
-		}()
-
 		var (
 			testFailures  []string
 			infraFailures []string
 		)
-		for failure := range failures {
+		for failure := range rca.Find(j) {
 			if failure.IsInfra() {
 				infraFailures = append(infraFailures, failure.String())
 			}
 			testFailures = append(testFailures, failure.String())
 		}
-
-		// Wait for the error handling to occur
-		wg.Wait()
 
 		rootCause := testFailures
 		if len(infraFailures) > 0 {

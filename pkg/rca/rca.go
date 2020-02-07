@@ -97,7 +97,7 @@ var (
 	}
 )
 
-type Rule func(j job, failures chan<- Cause) error
+type Rule func(j job, failures chan<- Cause)
 
 type job interface {
 	Result() (string, error)
@@ -107,25 +107,20 @@ type job interface {
 	JUnit() (io.Reader, error)
 }
 
-func Find(j job) (<-chan Cause, <-chan error) {
-
+func Find(j job) <-chan Cause {
 	failures := make(chan Cause)
-	errs := make(chan error, len(rules))
 
 	res, _ := j.Result()
 	if res == "SUCCESS" {
 		close(failures)
-		close(errs)
-		return failures, errs
+		return failures
 	}
 
 	var wg sync.WaitGroup
 	for _, rule := range rules {
 		wg.Add(1)
 		go func(rule Rule) {
-			if err := rule(j, failures); err != nil {
-				errs <- err
-			}
+			rule(j, failures)
 			wg.Done()
 		}(rule)
 	}
@@ -133,10 +128,9 @@ func Find(j job) (<-chan Cause, <-chan error) {
 	go func() {
 		wg.Wait()
 		close(failures)
-		close(errs)
 	}()
 
-	return uniqueFilter(failures), errs
+	return uniqueFilter(failures)
 }
 
 func uniqueFilter(inCh <-chan Cause) <-chan Cause {
