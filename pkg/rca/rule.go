@@ -9,7 +9,7 @@ import (
 	"github.com/pierreprinetti/go-junit"
 )
 
-func ifMatchBuildLogs(expr string, cause Cause) Rule {
+func matchBuildLogs(expr string, cause Cause) Rule {
 	re := regexp.MustCompile(expr)
 	return func(j job, failures chan<- Cause) error {
 		f, err := j.BuildLog()
@@ -25,7 +25,7 @@ func ifMatchBuildLogs(expr string, cause Cause) Rule {
 	}
 }
 
-func ifMatchMachines(expr string, cause Cause) Rule {
+func matchMachines(expr string, cause Cause) Rule {
 	re := regexp.MustCompile(expr)
 	return func(j job, failures chan<- Cause) error {
 		f, err := j.Machines()
@@ -41,7 +41,7 @@ func ifMatchMachines(expr string, cause Cause) Rule {
 	}
 }
 
-func ifMatchNodes(expr string, cause Cause) Rule {
+func matchNodes(expr string, cause Cause) Rule {
 	re := regexp.MustCompile(expr)
 	return func(j job, failures chan<- Cause) error {
 		f, err := j.Nodes()
