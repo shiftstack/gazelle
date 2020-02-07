@@ -89,6 +89,7 @@ var (
 
 		findBuildLogsInfra(
 			`error: could not run steps: step \[release-inputs\] failed.*`,
+			`An unexpected error prevented the server from fulfilling your request. \(HTTP \d{3}\)`,
 		),
 
 		failedTests,
