@@ -87,6 +87,10 @@ var (
 			CauseLeaseFailure,
 		),
 
+		findBuildLogsInfra(
+			`error: could not run steps: step \[release-inputs\] failed.*`,
+		),
+
 		failedTests,
 	}
 )
