@@ -7,82 +7,82 @@ import (
 
 var (
 	rules = []Rule{
-		ifMatchBuildLogs(
+		matchBuildLogs(
 			"to become ready: unexpected state 'ERROR', wanted target 'ACTIVE'. last error",
 			CauseErroredVM,
 		),
 
-		ifMatchBuildLogs(
+		matchBuildLogs(
 			"to become ready: timeout while waiting for state to become 'ACTIVE'",
 			CauseErroredVM,
 		),
 
-		ifMatchBuildLogs(
+		matchBuildLogs(
 			"The volume is in error status. Please check with your cloud admin",
 			CauseErroredVolume,
 		),
 
-		ifMatchBuildLogs(
+		matchBuildLogs(
 			"Cluster operator authentication Progressing is True with ProgressingWellKnownNotReady: Progressing: got '404 Not Found' status while trying to GET the OAuth well-known",
 			CauseClusterTimeout,
 		),
 
-		ifMatchBuildLogs(
+		matchBuildLogs(
 			"failed to initialize the cluster: Cluster operator [\\w-]+ is still updating",
 			CauseClusterTimeout,
 		),
 
-		ifMatchBuildLogs(
+		matchBuildLogs(
 			"failed to initialize the cluster: Working towards",
 			CauseClusterTimeout,
 		),
 
-		ifMatchBuildLogs(
+		matchBuildLogs(
 			"failed to initialize the cluster: Multiple errors are preventing progress",
 			CauseClusterTimeout,
 		),
 
-		ifMatchBuildLogs(
+		matchBuildLogs(
 			"failed to wait for bootstrapping to complete",
 			CauseBootstrapTimeout,
 		),
 
-		ifMatchBuildLogs(
+		matchBuildLogs(
 			"failed: unable to import latest release image",
 			CauseReleaseImage,
 		),
 
-		ifMatchBuildLogs(
+		matchBuildLogs(
 			"failed: unable to find the '[\\w-]+' image in the provided release image",
 			CauseReleaseImage,
 		),
 
-		ifMatchMachines(
+		matchMachines(
 			`"machine.openshift.io/instance-state": "ERROR"`,
 			CauseErroredVM,
 		),
 
-		ifMatchNodes(
+		matchNodes(
 			"ERROR",
 			CauseErroredVM,
 		),
 
-		ifMatchBuildLogs(
+		matchBuildLogs(
 			`Quota exceeded for resources: \['router'\]`,
 			CauseQuota("router"),
 		),
 
-		ifMatchBuildLogs(
+		matchBuildLogs(
 			"VolumeSizeExceedsAvailableQuota: Requested volume or snapshot exceeds allowed gigabytes quota",
 			CauseQuota("volume size"),
 		),
 
-		ifMatchBuildLogs(
+		matchBuildLogs(
 			`when calling the ChangeResourceRecordSets operation`,
 			CauseRoute53,
 		),
 
-		ifMatchBuildLogs(
+		matchBuildLogs(
 			`failed to acquire lease`,
 			CauseLeaseFailure,
 		),
