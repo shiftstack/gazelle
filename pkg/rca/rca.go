@@ -93,6 +93,10 @@ var (
 			`error: could not run steps: step \[release:latest\] failed: the following tags from the release could not be imported to stable after five minutes.*`,
 		),
 
+		findBuildLogsGeneric(
+			`failed to fetch Terraform Variables: failed to generate asset .*`,
+		),
+
 		failedTests,
 	}
 )
