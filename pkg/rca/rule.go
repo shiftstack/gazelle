@@ -77,6 +77,27 @@ func findBuildLogsInfra(expressions ...string) Rule {
 	}
 }
 
+// findBuildLogsGeneric creates an infra failure for the first match among the
+// given expressions
+func findBuildLogsGeneric(expressions ...string) Rule {
+	re := regexp.MustCompile(strings.Join(expressions, "|"))
+
+	return func(j job, failures chan<- Cause) {
+		f, err := j.BuildLog()
+		if err != nil {
+			failures <- CauseGeneric("Failed to get build log: " + err.Error())
+			return
+		}
+
+		var buf bytes.Buffer
+		r := io.TeeReader(f, &buf)
+
+		if loc := re.FindReaderIndex(bufio.NewReader(r)); loc != nil {
+			failures <- CauseGeneric(buf.Bytes()[loc[0]:loc[1]])
+		}
+	}
+}
+
 func failedTests(j job, failures chan<- Cause) {
 	f, err := j.JUnit()
 	if err != nil {
