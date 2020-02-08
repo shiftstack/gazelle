@@ -87,6 +87,12 @@ var (
 			CauseLeaseFailure,
 		),
 
+		findBuildLogsInfra(
+			`error: could not run steps: step \[release-inputs\] failed.*`,
+			`An unexpected error prevented the server from fulfilling your request. \(HTTP \d{3}\)`,
+			`error: could not run steps: step \[release:latest\] failed: the following tags from the release could not be imported to stable after five minutes.*`,
+		),
+
 		failedTests,
 	}
 )

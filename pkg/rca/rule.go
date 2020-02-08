@@ -2,9 +2,11 @@ package rca
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/xml"
 	"io"
 	"regexp"
+	"strings"
 
 	"github.com/pierreprinetti/go-junit"
 )
@@ -53,6 +55,29 @@ func matchNodes(expr string, cause Cause) Rule {
 		if re.MatchReader(bufio.NewReader(f)) {
 			failures <- cause
 		}
+		return nil
+	}
+}
+
+// findBuildLogsInfra creates an infra failure for the first match among the
+// given expressions
+func findBuildLogsInfra(expressions ...string) Rule {
+	re := regexp.MustCompile(strings.Join(expressions, "|"))
+
+	return func(j job, failures chan<- Cause) error {
+		f, err := j.BuildLog()
+		if err != nil {
+			failures <- CauseGeneric("Failed to get build log: " + err.Error())
+			return nil
+		}
+
+		var buf bytes.Buffer
+		r := io.TeeReader(f, &buf)
+
+		if loc := re.FindReaderIndex(bufio.NewReader(r)); loc != nil {
+			failures <- CauseInfra(buf.Bytes()[loc[0]:loc[1]])
+		}
+
 		return nil
 	}
 }
