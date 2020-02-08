@@ -13,49 +13,46 @@ import (
 
 func matchBuildLogs(expr string, cause Cause) Rule {
 	re := regexp.MustCompile(expr)
-	return func(j job, failures chan<- Cause) error {
+	return func(j job, failures chan<- Cause) {
 		f, err := j.BuildLog()
 		if err != nil {
 			failures <- CauseGeneric("Failed to get build log: " + err.Error())
-			return nil
+			return
 		}
 
 		if re.MatchReader(bufio.NewReader(f)) {
 			failures <- cause
 		}
-		return nil
 	}
 }
 
 func matchMachines(expr string, cause Cause) Rule {
 	re := regexp.MustCompile(expr)
-	return func(j job, failures chan<- Cause) error {
+	return func(j job, failures chan<- Cause) {
 		f, err := j.Machines()
 		if err != nil {
 			failures <- CauseGeneric("Failed to get Machines information: " + err.Error())
-			return nil
+			return
 		}
 
 		if re.MatchReader(bufio.NewReader(f)) {
 			failures <- cause
 		}
-		return nil
 	}
 }
 
 func matchNodes(expr string, cause Cause) Rule {
 	re := regexp.MustCompile(expr)
-	return func(j job, failures chan<- Cause) error {
+	return func(j job, failures chan<- Cause) {
 		f, err := j.Nodes()
 		if err != nil {
 			failures <- CauseGeneric("Failed to get OpenStack Nodes information: " + err.Error())
-			return nil
+			return
 		}
 
 		if re.MatchReader(bufio.NewReader(f)) {
 			failures <- cause
 		}
-		return nil
 	}
 }
 
@@ -64,11 +61,11 @@ func matchNodes(expr string, cause Cause) Rule {
 func findBuildLogsInfra(expressions ...string) Rule {
 	re := regexp.MustCompile(strings.Join(expressions, "|"))
 
-	return func(j job, failures chan<- Cause) error {
+	return func(j job, failures chan<- Cause) {
 		f, err := j.BuildLog()
 		if err != nil {
 			failures <- CauseGeneric("Failed to get build log: " + err.Error())
-			return nil
+			return
 		}
 
 		var buf bytes.Buffer
@@ -77,23 +74,22 @@ func findBuildLogsInfra(expressions ...string) Rule {
 		if loc := re.FindReaderIndex(bufio.NewReader(r)); loc != nil {
 			failures <- CauseInfra(buf.Bytes()[loc[0]:loc[1]])
 		}
-
-		return nil
 	}
 }
 
-func failedTests(j job, failures chan<- Cause) error {
+func failedTests(j job, failures chan<- Cause) {
 	f, err := j.JUnit()
 	if err != nil {
 		if err != io.EOF {
-			failures <- CauseGeneric("Error parsing the JUnit file: " + err.Error())
+			failures <- CauseGeneric("Failed to get the JUnit file: " + err.Error())
 		}
-		return nil
+		return
 	}
 
 	var testSuite junit.TestSuite
 	if err := xml.NewDecoder(f).Decode(&testSuite); err != nil {
-		return err
+		failures <- CauseGeneric("Failed to decode the JUnit file: " + err.Error())
+		return
 	}
 
 	// FIXME(mandre) ideally, we should read this value from the `failures`
@@ -105,7 +101,7 @@ func failedTests(j job, failures chan<- Cause) error {
 		}
 		if total_failures > 10 {
 			failures <- CauseGeneric("More than 10 failed tests")
-			return nil
+			return
 		}
 	}
 
@@ -114,6 +110,4 @@ func failedTests(j job, failures chan<- Cause) error {
 			failures <- CauseGeneric(tc.Name)
 		}
 	}
-
-	return nil
 }
