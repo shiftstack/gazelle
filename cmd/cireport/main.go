@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
 	"os/user"
 	"strconv"
@@ -10,6 +9,7 @@ import (
 	"time"
 
 	"github.com/pierreprinetti/go-sequence"
+	"github.com/shiftstack/gazelle/pkg/gsheets"
 	"github.com/shiftstack/gazelle/pkg/job"
 	"github.com/shiftstack/gazelle/pkg/rca"
 )
@@ -78,7 +78,7 @@ func main() {
 			}, "</td><td>"))
 			s.WriteString(`</td></tr></tbody></table>`)
 		}
-		fmt.Println(s.String())
+		gsheets.AddRow(s.String(), fullJobName)
 	}
 }
 
