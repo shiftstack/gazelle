@@ -14,6 +14,40 @@ import (
 	"google.golang.org/api/sheets/v4"
 )
 
+type Client struct {
+	service       *sheets.Service
+	spreadsheetId string
+}
+
+func NewClient() Client {
+	c := Client{
+		service: getService(),
+		// NOTE(mandre) use a copy of the CI spreadsheet for testing
+		spreadsheetId: "19sV5IvC2xL8yC86ELaD8P30TKyiC1Okv0Ikr-ohRisI",
+	}
+	return c
+}
+
+func getService() *sheets.Service {
+	b, err := ioutil.ReadFile("credentials.json")
+	if err != nil {
+		log.Fatalf("Unable to read client secret file: %v", err)
+	}
+
+	// If modifying these scopes, delete your previously saved token.json.
+	config, err := google.ConfigFromJSON(b, "https://www.googleapis.com/auth/spreadsheets")
+	if err != nil {
+		log.Fatalf("Unable to parse client secret file to config: %v", err)
+	}
+	client := getClient(config)
+
+	srv, err := sheets.New(client)
+	if err != nil {
+		log.Fatalf("Unable to retrieve Sheets client: %v", err)
+	}
+	return srv
+}
+
 // Retrieve a token, saves the token, then returns the generated client.
 func getClient(config *oauth2.Config) *http.Client {
 	// The file token.json stores the user's access and refresh tokens, and is
@@ -89,26 +123,7 @@ func getSheetID(sheetName string) int64 {
 	return sheetId
 }
 
-func AddRow(row, sheetName string) {
-	b, err := ioutil.ReadFile("credentials.json")
-	if err != nil {
-		log.Fatalf("Unable to read client secret file: %v", err)
-	}
-
-	// If modifying these scopes, delete your previously saved token.json.
-	config, err := google.ConfigFromJSON(b, "https://www.googleapis.com/auth/spreadsheets")
-	if err != nil {
-		log.Fatalf("Unable to parse client secret file to config: %v", err)
-	}
-	client := getClient(config)
-
-	srv, err := sheets.New(client)
-	if err != nil {
-		log.Fatalf("Unable to retrieve Sheets client: %v", err)
-	}
-
-	// NOTE(mandre) use a copy of the CI spreadsheet for testing
-	spreadsheetId := "19sV5IvC2xL8yC86ELaD8P30TKyiC1Okv0Ikr-ohRisI"
+func (c *Client) AddRow(row, sheetName string) {
 	sheetId := getSheetID(sheetName)
 
 	idr := &sheets.InsertDimensionRequest{
@@ -140,7 +155,7 @@ func AddRow(row, sheetName string) {
 		},
 	}
 
-	_, err = srv.Spreadsheets.BatchUpdate(spreadsheetId, request).Context(context.Background()).Do()
+	_, err := c.service.Spreadsheets.BatchUpdate(c.spreadsheetId, request).Context(context.Background()).Do()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -153,7 +168,7 @@ func AddRow(row, sheetName string) {
 		},
 	}
 
-	_, err = srv.Spreadsheets.BatchUpdate(spreadsheetId, request).Context(context.Background()).Do()
+	_, err = c.service.Spreadsheets.BatchUpdate(c.spreadsheetId, request).Context(context.Background()).Do()
 	if err != nil {
 		log.Fatal(err)
 	}

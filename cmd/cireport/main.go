@@ -78,7 +78,9 @@ func main() {
 			}, "</td><td>"))
 			s.WriteString(`</td></tr></tbody></table>`)
 		}
-		gsheets.AddRow(s.String(), fullJobName)
+
+		client := gsheets.NewClient()
+		client.AddRow(s.String(), fullJobName)
 	}
 }
 
