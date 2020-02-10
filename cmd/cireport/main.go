@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"os/user"
 	"strconv"
@@ -11,6 +12,7 @@ import (
 	"github.com/pierreprinetti/go-sequence"
 	"github.com/shiftstack/gazelle/pkg/gsheets"
 	"github.com/shiftstack/gazelle/pkg/job"
+	"github.com/shiftstack/gazelle/pkg/prow"
 	"github.com/shiftstack/gazelle/pkg/rca"
 )
 
@@ -21,6 +23,14 @@ var (
 )
 
 func main() {
+	client := gsheets.NewClient()
+
+	if jobIDs == "" {
+		lowerBound := client.GetLatestIdFromSheet(fullJobName) + 1
+		upperBound := prow.GetLatestIdFromProw(fullJobName)
+		jobIDs = fmt.Sprintf("%d-%d", lowerBound, upperBound)
+	}
+
 	ids, err := sequence.Int(jobIDs)
 	if err != nil {
 		panic(err)
@@ -79,7 +89,6 @@ func main() {
 			s.WriteString(`</td></tr></tbody></table>`)
 		}
 
-		client := gsheets.NewClient()
 		client.AddRow(s.String(), fullJobName)
 	}
 }

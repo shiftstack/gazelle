@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -103,7 +104,7 @@ func saveToken(path string, token *oauth2.Token) {
 	json.NewEncoder(f).Encode(token)
 }
 
-func getSheetID(sheetName string) int64 {
+func getSheetID(jobName string) int64 {
 	innerMap := map[string]int64{
 		"release-openshift-ocp-installer-e2e-openstack-4.4":           552238361,
 		"release-openshift-ocp-installer-e2e-openstack-serial-4.4":    923764376,
@@ -115,16 +116,57 @@ func getSheetID(sheetName string) int64 {
 		"release-openshift-origin-installer-e2e-openstack-serial-4.2": 1799792403,
 	}
 
-	sheetId, ok := innerMap[sheetName]
+	sheetId, ok := innerMap[jobName]
 	if !ok {
-		log.Fatalf("Unknown job %v", sheetName)
+		log.Fatalf("Unknown job %v", jobName)
 	}
 
 	return sheetId
 }
 
-func (c *Client) AddRow(row, sheetName string) {
-	sheetId := getSheetID(sheetName)
+func getSheetName(jobName string) string {
+	innerMap := map[string]string{
+		"release-openshift-ocp-installer-e2e-openstack-4.4":           "Parallel OCP 4.4",
+		"release-openshift-ocp-installer-e2e-openstack-serial-4.4":    "Serial OCP 4.4",
+		"release-openshift-ocp-installer-e2e-openstack-4.3":           "Parallel OCP 4.3",
+		"release-openshift-ocp-installer-e2e-openstack-serial-4.3":    "Serial OCP 4.3",
+		"release-openshift-ocp-installer-e2e-openstack-4.2":           "Parallel OCP 4.2",
+		"release-openshift-ocp-installer-e2e-openstack-serial-4.2":    "Serial OCP 4.2",
+		"release-openshift-origin-installer-e2e-openstack-4.2":        "Parallel Origin 4.3",
+		"release-openshift-origin-installer-e2e-openstack-serial-4.2": "Serial Origin 4.4",
+	}
+
+	sheetName, ok := innerMap[jobName]
+	if !ok {
+		log.Fatalf("Unknown job %v", jobName)
+	}
+
+	return sheetName
+}
+
+// Get ID of the most recent job in the spreadsheet
+func (c *Client) GetLatestIdFromSheet(jobName string) int {
+	readRange := getSheetName(jobName) + "!A7"
+	resp, err := c.service.Spreadsheets.Values.Get(c.spreadsheetId, readRange).Do()
+	if err != nil {
+		log.Fatalf("Unable to retrieve data from sheet: %v", err)
+	}
+
+	if len(resp.Values) == 0 || len(resp.Values[0]) == 0 {
+		return 0
+	}
+
+	data := fmt.Sprint(resp.Values[0][0])
+	id, err := strconv.Atoi(data)
+	if err != nil {
+		return 0
+	}
+
+	return id
+}
+
+func (c *Client) AddRow(row, jobName string) {
+	sheetId := getSheetID(jobName)
 
 	idr := &sheets.InsertDimensionRequest{
 		Range: &sheets.DimensionRange{
