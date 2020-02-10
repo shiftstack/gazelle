@@ -6,8 +6,6 @@ import (
 	"os"
 	"os/user"
 	"strconv"
-	"strings"
-	"time"
 
 	"github.com/pierreprinetti/go-sequence"
 	"github.com/shiftstack/gazelle/pkg/gsheets"
@@ -39,22 +37,15 @@ func main() {
 	for _, i := range ids {
 		j := job.Job{
 			FullName: fullJobName,
+			UserName: username,
 			ID:       strconv.Itoa(i),
 		}
 
-		startedAt, err := j.StartTime()
-		if err != nil {
-			panic(err)
-		}
-
-		finishedAt, err := j.FinishTime()
-		if err != nil {
-			finishedAt = time.Now().Round(time.Second)
-		}
-
 		result, err := j.Result()
-		if err != nil {
-			result = "Pending"
+		if err == nil {
+			j.ComputedResult = result
+		} else {
+			j.ComputedResult = "Pending"
 		}
 
 		var (
@@ -68,28 +59,13 @@ func main() {
 			testFailures = append(testFailures, failure.String())
 		}
 
-		rootCause := testFailures
+		j.RootCause = testFailures
 		if len(infraFailures) > 0 {
-			rootCause = infraFailures
-			result = "INFRA FAILURE"
+			j.RootCause = infraFailures
+			j.ComputedResult = "INFRA FAILURE"
 		}
 
-		var s strings.Builder
-		{
-			s.WriteString(`<meta http-equiv="content-type" content="text/html; charset=utf-8"><meta name="generator" content="cireport"/><table xmlns="http://www.w3.org/1999/xhtml"><tbody><tr><td>`)
-			s.WriteString(strings.Join([]string{
-				`<a href="` + j.JobURL() + `">` + j.ID + `</a>`,
-				startedAt.String(),
-				finishedAt.Sub(startedAt).String(),
-				result,
-				`<a href="` + j.BuildLogURL() + `">` + j.BuildLogURL() + `</a>`,
-				username,
-				strings.Join(rootCause, "<br />"),
-			}, "</td><td>"))
-			s.WriteString(`</td></tr></tbody></table>`)
-		}
-
-		client.AddRow(s.String(), fullJobName)
+		client.AddRow(j)
 	}
 }
 

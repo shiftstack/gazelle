@@ -9,6 +9,8 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/shiftstack/gazelle/pkg/job"
+
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -165,8 +167,8 @@ func (c *Client) GetLatestIdFromSheet(jobName string) int {
 	return id
 }
 
-func (c *Client) AddRow(row, jobName string) {
-	sheetId := getSheetID(jobName)
+func (c *Client) AddRow(j job.Job) {
+	sheetId := getSheetID(j.FullName)
 
 	idr := &sheets.InsertDimensionRequest{
 		Range: &sheets.DimensionRange{
@@ -179,7 +181,7 @@ func (c *Client) AddRow(row, jobName string) {
 	}
 
 	pdr := &sheets.PasteDataRequest{
-		Data: row,
+		Data: j.ToHtml(),
 		Coordinate: &sheets.GridCoordinate{
 			SheetId:     sheetId,
 			RowIndex:    6,

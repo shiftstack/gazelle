@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/shiftstack/gazelle/pkg/cache"
@@ -15,9 +16,11 @@ import (
 var jobTargetRexexp = regexp.MustCompile(`release-openshift-(ocp|origin)-installer-(.*)-\d.\d`)
 
 type Job struct {
-	FullName string
-	Target   string
-	ID       string
+	FullName       string
+	ID             string
+	ComputedResult string
+	UserName       string
+	RootCause      []string
 
 	client http.Client
 
@@ -48,12 +51,12 @@ func (j *Job) Name() (string, error) {
 func (j Job) StartTime() (time.Time, error) {
 	f, err := j.fetch(j.baseURL() + "/started.json")
 	if err != nil {
-		return time.Time{}, err
+		panic(err)
 	}
 
 	var started metadata
 	if err := json.NewDecoder(f).Decode(&started); err != nil {
-		return time.Time{}, err
+		panic(err)
 	}
 
 	return started.time, nil
@@ -71,6 +74,20 @@ func (j Job) FinishTime() (time.Time, error) {
 	}
 
 	return finished.time, nil
+}
+
+func (j Job) Duration() string {
+	startedAt, err := j.StartTime()
+	if err != nil {
+		return "0s"
+	}
+
+	finishedAt, err := j.FinishTime()
+	if err != nil {
+		finishedAt = time.Now().Round(time.Second)
+	}
+
+	return finishedAt.Sub(startedAt).String()
 }
 
 func (j Job) Result() (string, error) {
@@ -174,4 +191,23 @@ func (j Job) JUnit() (io.Reader, error) {
 		return nil, err
 	}
 	return j.fetch(u)
+}
+
+func (j Job) ToHtml() string {
+	startTime, _ := j.StartTime()
+	var s strings.Builder
+	{
+		s.WriteString(`<meta http-equiv="content-type" content="text/html; charset=utf-8"><meta name="generator" content="cireport"/><table xmlns="http://www.w3.org/1999/xhtml"><tbody><tr><td>`)
+		s.WriteString(strings.Join([]string{
+			`<a href="` + j.JobURL() + `">` + j.ID + `</a>`,
+			startTime.String(),
+			j.Duration(),
+			j.ComputedResult,
+			`<a href="` + j.BuildLogURL() + `">` + j.BuildLogURL() + `</a>`,
+			j.UserName,
+			strings.Join(j.RootCause, "<br />"),
+		}, "</td><td>"))
+		s.WriteString(`</td></tr></tbody></table>`)
+	}
+	return s.String()
 }
