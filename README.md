@@ -30,9 +30,14 @@ Usage of ./cireport:
   -id string
         Job IDs. If unset, it consists of all new runs since last time the spreadsheet was updated.
   -job string
-        Full name of the test job (e.g. release-openshift-ocp-installer-e2e-openstack-serial-4.4)
+        Full name of the test job (e.g. release-openshift-ocp-installer-e2e-openstack-serial-4.4). All known jobs if unset.
   -user string
         Username to use for CI Cop
+```
+
+Update the spreadsheet with all latest results for all jobs, with CI Cop Axel Foley:
+```shell
+./cireport -user "Axel Foley"
 ```
 
 Update the spreadsheet with latest results for OCP Parallel 4.4:
