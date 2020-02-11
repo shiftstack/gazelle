@@ -41,7 +41,6 @@ func main() {
 	for _, i := range ids {
 		j := job.Job{
 			FullName: fullJobName,
-			UserName: username,
 			ID:       strconv.Itoa(i),
 		}
 
@@ -69,7 +68,7 @@ func main() {
 			j.ComputedResult = "INFRA FAILURE"
 		}
 
-		sheet.AddRow(j)
+		sheet.AddRow(j, username)
 	}
 }
 

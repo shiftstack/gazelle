@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 
 	"github.com/shiftstack/gazelle/pkg/job"
 
@@ -122,11 +123,15 @@ func (s *Sheet) GetLatestId() int {
 	return id
 }
 
-func (s *Sheet) AddRow(j job.Job) {
+func (s *Sheet) AddRow(j job.Job, user string) {
 	sheetId := s.getID()
 
 	id, _ := strconv.Atoi(j.ID)
 	idx, exists := s.getIndex(id)
+
+	// Let's try render the job early so that we do not create a empty row
+	// if the job does not exist
+	rendered_job := jobToHtml(j, user)
 
 	if !exists {
 		// Create a new row to save the report
@@ -160,7 +165,7 @@ func (s *Sheet) AddRow(j job.Job) {
 	}
 
 	pdr := &sheets.PasteDataRequest{
-		Data: j.ToHtml(),
+		Data: rendered_job,
 		Coordinate: &sheets.GridCoordinate{
 			SheetId:     sheetId,
 			RowIndex:    int64(idx + offset),
@@ -182,4 +187,26 @@ func (s *Sheet) AddRow(j job.Job) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func jobToHtml(j job.Job, user string) string {
+	startTime, err := j.StartTime()
+	if err != nil {
+		log.Fatalf("Could not fetch information about job %v: %v", j.ID, err)
+	}
+	var s strings.Builder
+	{
+		s.WriteString(`<meta http-equiv="content-type" content="text/html; charset=utf-8"><meta name="generator" content="cireport"/><table xmlns="http://www.w3.org/1999/xhtml"><tbody><tr><td>`)
+		s.WriteString(strings.Join([]string{
+			`<a href="` + j.JobURL() + `">` + j.ID + `</a>`,
+			startTime.String(),
+			j.Duration().String(),
+			j.ComputedResult,
+			`<a href="` + j.BuildLogURL() + `">` + j.BuildLogURL() + `</a>`,
+			user,
+			strings.Join(j.RootCause, "<br />"),
+		}, "</td><td>"))
+		s.WriteString(`</td></tr></tbody></table>`)
+	}
+	return s.String()
 }
