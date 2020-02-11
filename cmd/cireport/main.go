@@ -75,7 +75,7 @@ func main() {
 
 func init() {
 	flag.StringVar(&fullJobName, "job", "", "Full name of the test job (e.g. release-openshift-ocp-installer-e2e-openstack-serial-4.4)")
-	flag.StringVar(&jobIDs, "id", "", "Job IDs")
+	flag.StringVar(&jobIDs, "id", "", "Job IDs. If unset, it consists of all new runs since last time the spreadsheet was updated.")
 
 	flag.StringVar(&username, "user", os.Getenv("CIREPORT_USER"), "Username to use for CI Cop")
 	if username == "" {
