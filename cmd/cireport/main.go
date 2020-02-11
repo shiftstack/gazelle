@@ -22,7 +22,7 @@ var (
 
 func main() {
 	client := gsheets.NewClient()
-	sheet  := gsheets.Sheet {
+	sheet := gsheets.Sheet{
 		JobName: fullJobName,
 		Client:  &client,
 	}

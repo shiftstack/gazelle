@@ -11,11 +11,13 @@ import (
 	"google.golang.org/api/sheets/v4"
 )
 
+const offset int = 6
+
 type Sheet struct {
 	JobName string
 	Client  *Client
 
-	idxList []string
+	idxList []int
 }
 
 func (s *Sheet) getID() int64 {
@@ -58,6 +60,47 @@ func (s *Sheet) getName() string {
 	return sheetName
 }
 
+func (s *Sheet) getAllIDs() {
+	readRange := s.getName() + "!A7:A300"
+	resp, err := s.Client.service.Spreadsheets.Values.Get(s.Client.spreadsheetId, readRange).Do()
+	if err != nil {
+		log.Fatalf("Unable to retrieve data from sheet: %v", err)
+	}
+
+	if len(resp.Values) == 0 {
+		fmt.Println("No data found.")
+		return
+	}
+
+	for _, row := range resp.Values {
+		id, err := strconv.Atoi(fmt.Sprint(row[0]))
+		if err != nil {
+			id = 0
+		}
+		s.idxList = append(s.idxList, id)
+	}
+}
+
+// Get the index on which the job with the given id should be inserted
+func (s *Sheet) getIndex(id int) (int, bool) {
+	// Populate list of IDs from sheet
+	if len(s.idxList) == 0 {
+		s.getAllIDs()
+	}
+
+	i := 0
+	for ; i < len(s.idxList); i++ {
+		// s.idxList is sorted in descending order
+		if s.idxList[i] <= id {
+			break
+		}
+	}
+
+	exists := len(s.idxList) > 0 && s.idxList[i] == id
+
+	return i, exists
+}
+
 // Get ID of the most recent job in the spreadsheet
 func (s *Sheet) GetLatestId() int {
 	readRange := s.getName() + "!A7"
@@ -82,21 +125,45 @@ func (s *Sheet) GetLatestId() int {
 func (s *Sheet) AddRow(j job.Job) {
 	sheetId := s.getID()
 
-	idr := &sheets.InsertDimensionRequest{
-		Range: &sheets.DimensionRange{
-			Dimension:  "ROWS",
-			SheetId:    sheetId,
-			StartIndex: 6,
-			EndIndex:   7,
-		},
-		InheritFromBefore: false,
+	id, _ := strconv.Atoi(j.ID)
+	idx, exists := s.getIndex(id)
+
+	if !exists {
+		// Create a new row to save the report
+		idr := &sheets.InsertDimensionRequest{
+			Range: &sheets.DimensionRange{
+				Dimension:  "ROWS",
+				SheetId:    sheetId,
+				StartIndex: int64(idx + offset),
+				EndIndex:   int64(idx + offset + 1),
+			},
+			InheritFromBefore: false,
+		}
+
+		request := &sheets.BatchUpdateSpreadsheetRequest{
+			Requests: []*sheets.Request{
+				&sheets.Request{
+					InsertDimension: idr,
+				},
+			},
+		}
+
+		_, err := s.Client.service.Spreadsheets.BatchUpdate(s.Client.spreadsheetId, request).Context(context.Background()).Do()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Insert the new id into s.idxList
+		s.idxList = append(s.idxList, 0)
+		copy(s.idxList[idx+1:], s.idxList[idx:])
+		s.idxList[idx] = id
 	}
 
 	pdr := &sheets.PasteDataRequest{
 		Data: j.ToHtml(),
 		Coordinate: &sheets.GridCoordinate{
 			SheetId:     sheetId,
-			RowIndex:    6,
+			RowIndex:    int64(idx + offset),
 			ColumnIndex: 0,
 		},
 		Type: "PASTE_NORMAL",
@@ -106,25 +173,12 @@ func (s *Sheet) AddRow(j job.Job) {
 	request := &sheets.BatchUpdateSpreadsheetRequest{
 		Requests: []*sheets.Request{
 			&sheets.Request{
-				InsertDimension: idr,
-			},
-		},
-	}
-
-	_, err := s.Client.service.Spreadsheets.BatchUpdate(s.Client.spreadsheetId, request).Context(context.Background()).Do()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	request = &sheets.BatchUpdateSpreadsheetRequest{
-		Requests: []*sheets.Request{
-			&sheets.Request{
 				PasteData: pdr,
 			},
 		},
 	}
 
-	_, err = s.Client.service.Spreadsheets.BatchUpdate(s.Client.spreadsheetId, request).Context(context.Background()).Do()
+	_, err := s.Client.service.Spreadsheets.BatchUpdate(s.Client.spreadsheetId, request).Context(context.Background()).Do()
 	if err != nil {
 		log.Fatal(err)
 	}
