@@ -9,7 +9,7 @@ import (
 )
 
 // Get ID of the most recent job from prow
-func GetLatestIdFromProw(jobName string) int {
+func GetLatestId(jobName string) int {
 	// Request the HTML page.
 	res, err := http.Get("https://prow.svc.ci.openshift.org/job-history/origin-ci-test/logs/" + jobName)
 	if err != nil {

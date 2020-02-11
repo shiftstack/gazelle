@@ -22,10 +22,14 @@ var (
 
 func main() {
 	client := gsheets.NewClient()
+	sheet  := gsheets.Sheet {
+		JobName: fullJobName,
+		Client:  &client,
+	}
 
 	if jobIDs == "" {
-		lowerBound := client.GetLatestIdFromSheet(fullJobName) + 1
-		upperBound := prow.GetLatestIdFromProw(fullJobName)
+		lowerBound := sheet.GetLatestId() + 1
+		upperBound := prow.GetLatestId(fullJobName)
 		jobIDs = fmt.Sprintf("%d-%d", lowerBound, upperBound)
 	}
 
@@ -65,7 +69,7 @@ func main() {
 			j.ComputedResult = "INFRA FAILURE"
 		}
 
-		client.AddRow(j)
+		sheet.AddRow(j)
 	}
 }
 
