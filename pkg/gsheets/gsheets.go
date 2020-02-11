@@ -134,8 +134,8 @@ func getSheetName(jobName string) string {
 		"release-openshift-ocp-installer-e2e-openstack-serial-4.3":    "Serial OCP 4.3",
 		"release-openshift-ocp-installer-e2e-openstack-4.2":           "Parallel OCP 4.2",
 		"release-openshift-ocp-installer-e2e-openstack-serial-4.2":    "Serial OCP 4.2",
-		"release-openshift-origin-installer-e2e-openstack-4.2":        "Parallel Origin 4.3",
-		"release-openshift-origin-installer-e2e-openstack-serial-4.2": "Serial Origin 4.4",
+		"release-openshift-origin-installer-e2e-openstack-4.2":        "Parallel Origin 4.2",
+		"release-openshift-origin-installer-e2e-openstack-serial-4.2": "Serial Origin 4.2",
 	}
 
 	sheetName, ok := innerMap[jobName]
