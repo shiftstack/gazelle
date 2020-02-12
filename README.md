@@ -1,6 +1,6 @@
 ## What
 
-Returns tab-separated build information, ready to be pasted in the CI spreadsheet.
+Update the CI spreadsheet with information from latest CI runs.
 
 ## Root cause analysis
 
@@ -10,34 +10,42 @@ The rules are coded in `pkg/rca/rule.go`. When new rules are coded, and add them
 
 ## How
 
+### Build gazelle
+
 ```shell
 go build ./cmd/cireport
-./cireport -job release-openshift-origin-installer-e2e-openstack-serial-4.2 -id 346-345
 ```
 
-```HTML
-<meta http-equiv="content-type" content="text/html; charset=utf-8"><meta name="generator" content="cireport"/><table xmlns="http://www.w3.org/1999/xhtml"><tbody><tr><td><a href="https://prow.svc.ci.openshift.org/view/gcs/origin-ci-test/logs/release-openshift-ocp-installer-e2e-openstack-serial-4.2/345">345</a></td><td>2019-12-28 14:37:19 +0000 UTC</td><td>2h11m34s</td><td>SUCCESS</td><td></td><td><a href="https://storage.googleapis.com/origin-ci-test/logs/release-openshift-ocp-installer-e2e-openstack-serial-4.2/345/build-log.txt">https://storage.googleapis.com/origin-ci-test/logs/release-openshift-ocp-installer-e2e-openstack-serial-4.2/345/build-log.txt</a></td><td><a href="https://storage.googleapis.com/origin-ci-test/logs/release-openshift-ocp-installer-e2e-openstack-serial-4.2/345/artifacts/e2e-openstack-serial/machines.json">https://storage.googleapis.com/origin-ci-test/logs/release-openshift-ocp-installer-e2e-openstack-serial-4.2/345/artifacts/e2e-openstack-serial/machines.json</a></td><td><a href="https://storage.googleapis.com/origin-ci-test/logs/release-openshift-ocp-installer-e2e-openstack-serial-4.2/345/artifacts/e2e-openstack-serial/openstack_nodes.log">https://storage.googleapis.com/origin-ci-test/logs/release-openshift-ocp-installer-e2e-openstack-serial-4.2/345/artifacts/e2e-openstack-serial/openstack_nodes.log</a></td><td>cireport</td><td></td></tr></tbody></table>
-<meta http-equiv="content-type" content="text/html; charset=utf-8"><meta name="generator" content="cireport"/><table xmlns="http://www.w3.org/1999/xhtml"><tbody><tr><td><a href="https://prow.svc.ci.openshift.org/view/gcs/origin-ci-test/logs/release-openshift-ocp-installer-e2e-openstack-serial-4.2/346">346</a></td><td>2019-12-29 02:38:10 +0000 UTC</td><td>2h22m1s</td><td>FAILURE</td><td></td><td><a href="https://storage.googleapis.com/origin-ci-test/logs/release-openshift-ocp-installer-e2e-openstack-serial-4.2/346/build-log.txt">https://storage.googleapis.com/origin-ci-test/logs/release-openshift-ocp-installer-e2e-openstack-serial-4.2/346/build-log.txt</a></td><td><a href="https://storage.googleapis.com/origin-ci-test/logs/release-openshift-ocp-installer-e2e-openstack-serial-4.2/346/artifacts/e2e-openstack-serial/machines.json">https://storage.googleapis.com/origin-ci-test/logs/release-openshift-ocp-installer-e2e-openstack-serial-4.2/346/artifacts/e2e-openstack-serial/machines.json</a></td><td><a href="https://storage.googleapis.com/origin-ci-test/logs/release-openshift-ocp-installer-e2e-openstack-serial-4.2/346/artifacts/e2e-openstack-serial/openstack_nodes.log">https://storage.googleapis.com/origin-ci-test/logs/release-openshift-ocp-installer-e2e-openstack-serial-4.2/346/artifacts/e2e-openstack-serial/openstack_nodes.log</a></td><td>cireport</td><td>Provisioned VM in ERROR state</td></tr></tbody></table>
+### Setup
+
+Get your `credentials.json` file from https://console.developers.google.com/apis/credentials and save it at the root of your git checkout.
+
+On the first run of gazelle, it will prompt you for granting access. Visit the URL and paste the result in your terminal.
+
+### Usage
+
+```
+$ ./cireport --help
+Usage of ./cireport:
+  -id string
+        Job IDs. If unset, it consists of all new runs since last time the spreadsheet was updated.
+  -job string
+        Full name of the test job (e.g. release-openshift-ocp-installer-e2e-openstack-serial-4.4). All known jobs if unset.
+  -user string
+        Username to use for CI Cop
 ```
 
-This command gets entries ready for pasting into the spreadsheet, given `$CLIPBOARD_COPY` your favourite clipboard "copy" command:
-
+Update the spreadsheet with all latest results for all jobs, with CI Cop Axel Foley:
 ```shell
-./cireport -job release-openshift-ocp-installer-e2e-openstack-serial-4.2 -id 346-345 | tee /dev/stderr | "$CLIPBOARD_COPY"
+./cireport -user "Axel Foley"
 ```
 
-### Wayland
-
-If you use Wayland as your desktop environment, you can install the `wl-clipboard` package and then use the `wl-copy` tool:
-
+Update the spreadsheet with latest results for OCP Parallel 4.4:
 ```shell
-export CLIPBOARD_COPY=wl-copy
+./cireport -job release-openshift-ocp-installer-e2e-openstack-4.4
 ```
 
-### X11
-
-Under X11 you can use the `xclip`, but if you intend to paste the output as an XML (for example pasting it to a spreadsheet), you need to specify the content type too:
-
+Add results for jobs 345 to 347 for OKD Serial 4.2:
 ```shell
-export CLIPBOARD_COPY="xclip -selection clipboard -t text/html"
+./cireport -job release-openshift-origin-installer-e2e-openstack-serial-4.2 -id 345-347
 ```

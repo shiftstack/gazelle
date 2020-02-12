@@ -6,11 +6,11 @@ import (
 	"os"
 	"os/user"
 	"strconv"
-	"strings"
-	"time"
 
 	"github.com/pierreprinetti/go-sequence"
+	"github.com/shiftstack/gazelle/pkg/gsheets"
 	"github.com/shiftstack/gazelle/pkg/job"
+	"github.com/shiftstack/gazelle/pkg/prow"
 	"github.com/shiftstack/gazelle/pkg/rca"
 )
 
@@ -20,71 +20,89 @@ var (
 	username    string
 )
 
+var valid_jobs = []string{
+	"release-openshift-ocp-installer-e2e-openstack-4.4",
+	"release-openshift-ocp-installer-e2e-openstack-serial-4.4",
+	"release-openshift-ocp-installer-e2e-openstack-4.3",
+	"release-openshift-ocp-installer-e2e-openstack-serial-4.3",
+	"release-openshift-ocp-installer-e2e-openstack-4.2",
+	"release-openshift-ocp-installer-e2e-openstack-serial-4.2",
+	"release-openshift-origin-installer-e2e-openstack-4.2",
+	"release-openshift-origin-installer-e2e-openstack-serial-4.2",
+}
+
 func main() {
-	ids, err := sequence.Int(jobIDs)
-	if err != nil {
-		panic(err)
+	client := gsheets.NewClient()
+
+	var jobs []string
+	if fullJobName == "" {
+		jobs = valid_jobs
+	} else {
+		jobs = append(jobs, fullJobName)
 	}
 
-	for _, i := range ids {
-		j := job.Job{
-			FullName: fullJobName,
-			ID:       strconv.Itoa(i),
+	for _, jobName := range jobs {
+		sheet := gsheets.Sheet{
+			JobName: jobName,
+			Client:  &client,
 		}
 
-		startedAt, err := j.StartTime()
+		var realJobIDs string
+		if jobIDs == "" {
+			lowerBound := sheet.GetLatestId() + 1
+			upperBound := prow.GetLatestId(jobName)
+			if lowerBound < upperBound {
+				realJobIDs = fmt.Sprintf("%d-%d", lowerBound, upperBound)
+			} else if lowerBound == upperBound {
+				realJobIDs = fmt.Sprintf("%d", upperBound)
+			} else {
+				continue
+			}
+		}
+
+		ids, err := sequence.Int(realJobIDs)
 		if err != nil {
 			panic(err)
 		}
 
-		finishedAt, err := j.FinishTime()
-		if err != nil {
-			finishedAt = time.Now().Round(time.Second)
-		}
-
-		result, err := j.Result()
-		if err != nil {
-			result = "Pending"
-		}
-
-		var (
-			testFailures  []string
-			infraFailures []string
-		)
-		for failure := range rca.Find(j) {
-			if failure.IsInfra() {
-				infraFailures = append(infraFailures, failure.String())
+		for _, i := range ids {
+			j := job.Job{
+				FullName: jobName,
+				ID:       strconv.Itoa(i),
 			}
-			testFailures = append(testFailures, failure.String())
-		}
 
-		rootCause := testFailures
-		if len(infraFailures) > 0 {
-			rootCause = infraFailures
-			result = "INFRA FAILURE"
-		}
+			result, err := j.Result()
+			if err == nil {
+				j.ComputedResult = result
+			} else {
+				j.ComputedResult = "Pending"
+			}
 
-		var s strings.Builder
-		{
-			s.WriteString(`<meta http-equiv="content-type" content="text/html; charset=utf-8"><meta name="generator" content="cireport"/><table xmlns="http://www.w3.org/1999/xhtml"><tbody><tr><td>`)
-			s.WriteString(strings.Join([]string{
-				`<a href="` + j.JobURL() + `">` + j.ID + `</a>`,
-				startedAt.String(),
-				finishedAt.Sub(startedAt).String(),
-				result,
-				`<a href="` + j.BuildLogURL() + `">` + j.BuildLogURL() + `</a>`,
-				username,
-				strings.Join(rootCause, "<br />"),
-			}, "</td><td>"))
-			s.WriteString(`</td></tr></tbody></table>`)
+			var (
+				testFailures  []string
+				infraFailures []string
+			)
+			for failure := range rca.Find(j) {
+				if failure.IsInfra() {
+					infraFailures = append(infraFailures, failure.String())
+				}
+				testFailures = append(testFailures, failure.String())
+			}
+
+			j.RootCause = testFailures
+			if len(infraFailures) > 0 {
+				j.RootCause = infraFailures
+				j.ComputedResult = "INFRA FAILURE"
+			}
+
+			sheet.AddRow(j, username)
 		}
-		fmt.Println(s.String())
 	}
 }
 
 func init() {
-	flag.StringVar(&fullJobName, "job", "", "Full name of the test job (e.g. release-openshift-ocp-installer-e2e-openstack-serial-4.4)")
-	flag.StringVar(&jobIDs, "id", "", "Job IDs")
+	flag.StringVar(&fullJobName, "job", "", "Full name of the test job (e.g. release-openshift-ocp-installer-e2e-openstack-serial-4.4). All known jobs if unset.")
+	flag.StringVar(&jobIDs, "id", "", "Job IDs. If unset, it consists of all new runs since last time the spreadsheet was updated.")
 
 	flag.StringVar(&username, "user", os.Getenv("CIREPORT_USER"), "Username to use for CI Cop")
 	if username == "" {

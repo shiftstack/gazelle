@@ -15,9 +15,10 @@ import (
 var jobTargetRexexp = regexp.MustCompile(`release-openshift-(ocp|origin)-installer-(.*)-\d.\d`)
 
 type Job struct {
-	FullName string
-	Target   string
-	ID       string
+	FullName       string
+	ID             string
+	ComputedResult string
+	RootCause      []string
 
 	client http.Client
 
@@ -71,6 +72,21 @@ func (j Job) FinishTime() (time.Time, error) {
 	}
 
 	return finished.time, nil
+}
+
+func (j Job) Duration() time.Duration {
+	startedAt, err := j.StartTime()
+	if err != nil {
+		duration, _ := time.ParseDuration("0s")
+		return duration
+	}
+
+	finishedAt, err := j.FinishTime()
+	if err != nil {
+		finishedAt = time.Now().Round(time.Second)
+	}
+
+	return finishedAt.Sub(startedAt)
 }
 
 func (j Job) Result() (string, error) {
