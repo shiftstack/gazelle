@@ -21,11 +21,8 @@ type Client struct {
 
 func NewClient() Client {
 	c := Client{
-		service: getService(),
-		// NOTE(mandre) use a copy of the CI spreadsheet for testing
-		spreadsheetId: "19sV5IvC2xL8yC86ELaD8P30TKyiC1Okv0Ikr-ohRisI",
-		// Careful, this is the real stuff
-		// spreadsheetId: "16_3V8Uh1h4wIVnSA_fGHs9PrAnYdvGrX7tREVecexc4",
+		service:       getService(),
+		spreadsheetId: "16_3V8Uh1h4wIVnSA_fGHs9PrAnYdvGrX7tREVecexc4",
 	}
 	return c
 }
