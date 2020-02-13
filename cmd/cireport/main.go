@@ -56,9 +56,11 @@ func main() {
 			} else if lowerBound == upperBound {
 				realJobIDs = fmt.Sprintf("%d", upperBound)
 			} else {
+				// This sheet is already up-to-date
 				continue
 			}
 		}
+		fmt.Printf("Updating %s with results from jobs %s\n", jobName, realJobIDs)
 
 		ids, err := sequence.Int(realJobIDs)
 		if err != nil {
@@ -66,6 +68,7 @@ func main() {
 		}
 
 		for _, i := range ids {
+			fmt.Printf("%s %v\n", jobName, i)
 			j := job.Job{
 				FullName: jobName,
 				ID:       strconv.Itoa(i),
