@@ -3,6 +3,9 @@ language: go
 env:
   global:
     - GO111MODULE=on
+    - GOFLAGS=-mod=vendor
+
+install: skip
 
 jobs:
   include:
