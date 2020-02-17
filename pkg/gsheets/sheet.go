@@ -133,6 +133,7 @@ func (s *Sheet) AddRow(j job.Job, user string) {
 	// if the job does not exist
 	rendered_job, err := jobToHtml(j, user)
 	if err != nil {
+		log.Printf("Could not fetch information about job %v: %v", j.ID, err)
 		return
 	}
 
@@ -195,7 +196,6 @@ func (s *Sheet) AddRow(j job.Job, user string) {
 func jobToHtml(j job.Job, user string) (string, error) {
 	startTime, err := j.StartTime()
 	if err != nil {
-		log.Printf("Could not fetch information about job %v: %v", j.ID, err)
 		return "", err
 	}
 	var s strings.Builder
