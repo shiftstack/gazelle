@@ -131,7 +131,11 @@ func (s *Sheet) AddRow(j job.Job, user string) {
 
 	// Let's try render the job early so that we do not create a empty row
 	// if the job does not exist
-	rendered_job := jobToHtml(j, user)
+	rendered_job, err := jobToHtml(j, user)
+	if err != nil {
+		log.Printf("Could not fetch information about job %v: %v", j.ID, err)
+		return
+	}
 
 	if !exists {
 		// Create a new row to save the report
@@ -183,16 +187,16 @@ func (s *Sheet) AddRow(j job.Job, user string) {
 		},
 	}
 
-	_, err := s.Client.service.Spreadsheets.BatchUpdate(s.Client.spreadsheetId, request).Context(context.Background()).Do()
+	_, err = s.Client.service.Spreadsheets.BatchUpdate(s.Client.spreadsheetId, request).Context(context.Background()).Do()
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func jobToHtml(j job.Job, user string) string {
+func jobToHtml(j job.Job, user string) (string, error) {
 	startTime, err := j.StartTime()
 	if err != nil {
-		log.Fatalf("Could not fetch information about job %v: %v", j.ID, err)
+		return "", err
 	}
 	var s strings.Builder
 	{
@@ -208,5 +212,5 @@ func jobToHtml(j job.Job, user string) string {
 		}, "</td><td>"))
 		s.WriteString(`</td></tr></tbody></table>`)
 	}
-	return s.String()
+	return s.String(), nil
 }
