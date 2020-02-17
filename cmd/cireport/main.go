@@ -47,8 +47,8 @@ func main() {
 			Client:  &client,
 		}
 
-		var realJobIDs string
-		if jobIDs == "" {
+		realJobIDs := jobIDs
+		if realJobIDs == "" {
 			lowerBound := sheet.GetLatestId() + 1
 			upperBound := prow.GetLatestId(jobName)
 			if lowerBound < upperBound {
