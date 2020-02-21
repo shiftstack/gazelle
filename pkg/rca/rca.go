@@ -90,6 +90,7 @@ var (
 		findBuildLogsInfra(
 			`error: could not run steps: step \[.*\] failed.*`,
 			`An unexpected error prevented the server from fulfilling your request. \(HTTP \d{3}\)`,
+			`Failed to open /logs/process-log.txt: open /logs/process-log.txt: no such file or directory`,
 		),
 
 		findBuildLogsGeneric(
