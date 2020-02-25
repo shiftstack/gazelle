@@ -27,8 +27,6 @@ var valid_jobs = []string{
 	"release-openshift-ocp-installer-e2e-openstack-serial-4.3",
 	"release-openshift-ocp-installer-e2e-openstack-4.2",
 	"release-openshift-ocp-installer-e2e-openstack-serial-4.2",
-	"release-openshift-origin-installer-e2e-openstack-4.2",
-	"release-openshift-origin-installer-e2e-openstack-serial-4.2",
 }
 
 func main() {
