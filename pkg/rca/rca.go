@@ -89,12 +89,16 @@ var (
 
 		findBuildLogsInfra(
 			`error: could not run steps: step \[.*\] failed.*`,
+			`error: could not resolve inputs: could not determine inputs for step \[.*\].*`,
 			`An unexpected error prevented the server from fulfilling your request. \(HTTP \d{3}\)`,
 			`Failed to open /logs/process-log.txt: open /logs/process-log.txt: no such file or directory`,
+			`Entrypoint received interrupt: terminated`,
+			`error: could not initialize namespace.*`,
 		),
 
 		findBuildLogsGeneric(
 			`failed to fetch Terraform Variables: failed to generate asset .*`,
+			`INFO: Unexpected error listing nodes.*`,
 		),
 
 		failedTests,
