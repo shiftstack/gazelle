@@ -89,7 +89,9 @@ var (
 
 		findBuildLogsInfra(
 			`error: could not run steps: step \[.*\] failed.*`,
+			`error: could not run steps: step e2e-openstack(?:-serial)? failed: step needs a lease but no lease client provided`,
 			`error: could not resolve inputs: could not determine inputs for step \[.*\].*`,
+			`error: failed to generate steps from config.*`,
 			`An unexpected error prevented the server from fulfilling your request. \(HTTP \d{3}\)`,
 			`Failed to open /logs/process-log.txt: open /logs/process-log.txt: no such file or directory`,
 			`Entrypoint received interrupt: terminated`,
