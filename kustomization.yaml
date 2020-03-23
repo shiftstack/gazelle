@@ -1,0 +1,12 @@
+secretGenerator:
+- name: gazelle-es
+  literals:
+  - dbname=aps
+  - user=aps
+  - pass=aps
+resources:
+  - aps-db.yaml
+  - aps-wp.yaml
+  - aps-ingress.yaml
+  - aps-www-ingress.yaml
+

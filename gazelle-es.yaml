@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: gazelle-es
+  labels:
+    app: gazelle
+spec:
+  ports:
+    - port: 9200
+    - port: 9300
+  selector:
+    app: gazelle
+    tier: elasticsearch
+  clusterIP: None
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gazelle-es-pvc
+  labels:
+    app: gazelle
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gazelle-es
+  labels:
+    app: gazelle
+spec:
+  selector:
+    matchLabels:
+      app: gazelle
+      tier: elasticsearch
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: gazelle
+        tier: elasticsearch
+    spec:
+      containers:
+      - image: docker.io/library/elasticsearch:7.6.1
+        name: es
+        env:
+        - name: discovery.type
+          value: 'single-node'
+        ports:
+        - containerPort: 9300
+          name: transport
+        volumeMounts:
+        - name: storage
+          mountPath: /data
+        livenessProbe:
+          tcpSocket:
+            port: transport
+          initialDelaySeconds: 20
+          periodSeconds: 10
+      volumes:
+      - name: storage
+        persistentVolumeClaim:
+          claimName: gazelle-es-pvc
