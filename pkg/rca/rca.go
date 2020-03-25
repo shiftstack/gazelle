@@ -78,6 +78,11 @@ var (
 		),
 
 		matchBuildLogs(
+			"Quota exceeded, too many server groups",
+			CauseQuota("server groups"),
+		),
+
+		matchBuildLogs(
 			`when calling the ChangeResourceRecordSets operation`,
 			CauseRoute53,
 		),
