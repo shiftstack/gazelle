@@ -106,6 +106,7 @@ var (
 		findBuildLogsGeneric(
 			`failed to fetch Terraform Variables: failed to generate asset .*`,
 			`INFO: Unexpected error listing nodes.*`,
+			`level=info msg="Cluster operator insights Disabled is False with : "`,
 		),
 
 		failedTests,
