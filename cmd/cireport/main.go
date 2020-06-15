@@ -1,13 +1,13 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
 	"os/user"
 	"strconv"
 
-	"github.com/pierreprinetti/go-sequence"
 	"github.com/shiftstack/gazelle/pkg/gsheets"
 	"github.com/shiftstack/gazelle/pkg/job"
 	"github.com/shiftstack/gazelle/pkg/prow"
@@ -15,9 +15,9 @@ import (
 )
 
 var (
-	fullJobName string
-	jobIDs      string
-	username    string
+	requestedJobName string
+	requestedJobID   int64
+	username         string
 )
 
 var valid_jobs = []string{
@@ -33,47 +33,47 @@ var valid_jobs = []string{
 	"release-openshift-ocp-installer-e2e-openstack-serial-4.2",
 }
 
+func toBufferedChannel(numbers ...int64) <-chan int64 {
+	ch := make(chan int64, len(numbers))
+	for _, n := range numbers {
+		ch <- n
+	}
+	close(ch)
+	return ch
+}
+
 func main() {
+	ctx := context.TODO()
 	client := gsheets.NewClient()
 
 	var jobs []string
-	if fullJobName == "" {
+	if requestedJobName == "" {
 		jobs = valid_jobs
 	} else {
-		jobs = append(jobs, fullJobName)
+		jobs = []string{requestedJobName}
 	}
 
 	for _, jobName := range jobs {
+		fmt.Printf("Updating %s\n", jobName)
+
 		sheet := gsheets.Sheet{
 			JobName: jobName,
 			Client:  &client,
 		}
 
-		realJobIDs := jobIDs
-		if realJobIDs == "" {
+		var jobIDs <-chan int64
+		if requestedJobID != 0 {
+			jobIDs = toBufferedChannel(requestedJobID)
+		} else {
 			lowerBound := sheet.GetLatestId() + 1
-			upperBound := prow.GetLatestId(jobName)
-			if lowerBound < upperBound {
-				realJobIDs = fmt.Sprintf("%d-%d", lowerBound, upperBound)
-			} else if lowerBound == upperBound {
-				realJobIDs = fmt.Sprintf("%d", upperBound)
-			} else {
-				// This sheet is already up-to-date
-				continue
-			}
-		}
-		fmt.Printf("Updating %s with results from jobs %s\n", jobName, realJobIDs)
-
-		ids, err := sequence.Int(realJobIDs)
-		if err != nil {
-			panic(err)
+			jobIDs = prow.Sorted(prow.JobIDs(ctx, jobName, lowerBound))
 		}
 
-		for _, i := range ids {
-			fmt.Printf("%s %v\n", jobName, i)
+		for jobID := range jobIDs {
+			fmt.Printf("%s %v\n", jobName, jobID)
 			j := job.Job{
 				FullName: jobName,
-				ID:       strconv.Itoa(i),
+				ID:       strconv.FormatInt(jobID, 10),
 			}
 
 			result, err := j.Result()
@@ -106,8 +106,8 @@ func main() {
 }
 
 func init() {
-	flag.StringVar(&fullJobName, "job", "", "Full name of the test job (e.g. release-openshift-ocp-installer-e2e-openstack-serial-4.4). All known jobs if unset.")
-	flag.StringVar(&jobIDs, "id", "", "Job IDs. If unset, it consists of all new runs since last time the spreadsheet was updated.")
+	flag.StringVar(&requestedJobName, "job", "", "Full name of the test job (e.g. release-openshift-ocp-installer-e2e-openstack-serial-4.4). All known jobs if unset.")
+	flag.Int64Var(&requestedJobID, "id", 0, "Job ID. If unset, it consists of all new runs since last time the spreadsheet was updated.")
 
 	flag.StringVar(&username, "user", os.Getenv("CIREPORT_USER"), "Username to use for CI Cop")
 	if username == "" {

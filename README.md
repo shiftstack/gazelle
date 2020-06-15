@@ -28,7 +28,7 @@ On the first run of gazelle, it will prompt you for granting access. Visit the U
 $ ./cireport --help
 Usage of ./cireport:
   -id string
-        Job IDs. If unset, it consists of all new runs since last time the spreadsheet was updated.
+        Job ID. If unset, it consists of all new runs since last time the spreadsheet was updated.
   -job string
         Full name of the test job (e.g. release-openshift-ocp-installer-e2e-openstack-serial-4.4). All known jobs if unset.
   -user string
@@ -45,7 +45,7 @@ Update the spreadsheet with latest results for OCP Parallel 4.4:
 ./cireport -job release-openshift-ocp-installer-e2e-openstack-4.4
 ```
 
-Add results for jobs 345 to 347 for OKD Serial 4.2:
+Add results for job 345 for OKD Serial 4.2:
 ```shell
-./cireport -job release-openshift-origin-installer-e2e-openstack-serial-4.2 -id 345-347
+./cireport -job release-openshift-origin-installer-e2e-openstack-serial-4.2 -id 345
 ```

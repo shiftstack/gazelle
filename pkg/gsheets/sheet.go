@@ -18,7 +18,7 @@ type Sheet struct {
 	JobName string
 	Client  *Client
 
-	idxList []int
+	idxList []int64
 }
 
 func (s *Sheet) getID() int64 {
@@ -82,7 +82,8 @@ func (s *Sheet) getAllIDs() {
 	}
 
 	for _, row := range resp.Values {
-		id, err := strconv.Atoi(fmt.Sprint(row[0]))
+		id, err := strconv.ParseInt(fmt.Sprint(row[0]), 10, 64)
+
 		if err != nil {
 			id = 0
 		}
@@ -91,7 +92,7 @@ func (s *Sheet) getAllIDs() {
 }
 
 // Get the index on which the job with the given id should be inserted
-func (s *Sheet) getIndex(id int) (int, bool) {
+func (s *Sheet) getIndex(id int64) (int, bool) {
 	// Populate list of IDs from sheet
 	if len(s.idxList) == 0 {
 		s.getAllIDs()
@@ -111,7 +112,7 @@ func (s *Sheet) getIndex(id int) (int, bool) {
 }
 
 // Get ID of the most recent job in the spreadsheet
-func (s *Sheet) GetLatestId() int {
+func (s *Sheet) GetLatestId() int64 {
 	readRange := s.getName() + "!A7"
 	resp, err := s.Client.service.Spreadsheets.Values.Get(s.Client.spreadsheetId, readRange).Do()
 	if err != nil {
@@ -123,7 +124,7 @@ func (s *Sheet) GetLatestId() int {
 	}
 
 	data := fmt.Sprint(resp.Values[0][0])
-	id, err := strconv.Atoi(data)
+	id, err := strconv.ParseInt(data, 10, 64)
 	if err != nil {
 		return 0
 	}
@@ -134,7 +135,7 @@ func (s *Sheet) GetLatestId() int {
 func (s *Sheet) AddRow(j job.Job, user string) {
 	sheetId := s.getID()
 
-	id, _ := strconv.Atoi(j.ID)
+	id, _ := strconv.ParseInt(j.ID, 10, 64)
 	idx, exists := s.getIndex(id)
 
 	// Let's try render the job early so that we do not create a empty row
@@ -158,11 +159,7 @@ func (s *Sheet) AddRow(j job.Job, user string) {
 		}
 
 		request := &sheets.BatchUpdateSpreadsheetRequest{
-			Requests: []*sheets.Request{
-				&sheets.Request{
-					InsertDimension: idr,
-				},
-			},
+			Requests: []*sheets.Request{{InsertDimension: idr}},
 		}
 
 		_, err := s.Client.service.Spreadsheets.BatchUpdate(s.Client.spreadsheetId, request).Context(context.Background()).Do()
@@ -188,11 +185,7 @@ func (s *Sheet) AddRow(j job.Job, user string) {
 	}
 
 	request := &sheets.BatchUpdateSpreadsheetRequest{
-		Requests: []*sheets.Request{
-			&sheets.Request{
-				PasteData: pdr,
-			},
-		},
+		Requests: []*sheets.Request{{PasteData: pdr}},
 	}
 
 	_, err = s.Client.service.Spreadsheets.BatchUpdate(s.Client.spreadsheetId, request).Context(context.Background()).Do()
