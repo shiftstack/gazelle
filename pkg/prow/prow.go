@@ -101,13 +101,13 @@ func JobIDs(ctx context.Context, jobName string, from int64) <-chan int64 {
 				if id < from {
 					continue
 				}
-				if id == lastJobID {
+				if id >= lastJobID {
 					finished, err := jobIsFinished(ctx, bkt, jobName, id)
 					if err != nil {
 						panic(err)
 					}
 					if !finished {
-						continue
+						break
 					}
 				}
 				ids <- id
