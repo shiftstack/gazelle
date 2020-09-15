@@ -106,6 +106,7 @@ var (
 		findBuildLogsGeneric(
 			`failed to fetch Terraform Variables: failed to generate asset .*`,
 			`INFO: Unexpected error listing nodes.*`,
+			`GLIBC_\d+\.\d+' not found \(required by.*\)`,
 		),
 
 		failedTests,
