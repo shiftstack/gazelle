@@ -23,6 +23,8 @@ type Sheet struct {
 
 func (s *Sheet) getID() int64 {
 	innerMap := map[string]int64{
+		"release-openshift-ocp-installer-e2e-openstack-4.8":           18319342,
+		"release-openshift-ocp-installer-e2e-openstack-serial-4.8":    1675306162,
 		"release-openshift-ocp-installer-e2e-openstack-4.7":           1835312929,
 		"release-openshift-ocp-installer-e2e-openstack-serial-4.7":    1216933186,
 		"release-openshift-ocp-installer-e2e-openstack-4.6":           663598205,
@@ -49,6 +51,8 @@ func (s *Sheet) getID() int64 {
 
 func (s *Sheet) getName() string {
 	innerMap := map[string]string{
+		"release-openshift-ocp-installer-e2e-openstack-4.8":           "Parallel OCP 4.8",
+		"release-openshift-ocp-installer-e2e-openstack-serial-4.8":    "Serial OCP 4.8",
 		"release-openshift-ocp-installer-e2e-openstack-4.7":           "Parallel OCP 4.7",
 		"release-openshift-ocp-installer-e2e-openstack-serial-4.7":    "Serial OCP 4.7",
 		"release-openshift-ocp-installer-e2e-openstack-4.6":           "Parallel OCP 4.6",
