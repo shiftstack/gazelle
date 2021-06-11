@@ -144,7 +144,7 @@ func (j Job) Nodes() (io.Reader, error) {
 }
 
 func (j Job) JobURL() string {
-	return "https://prow.svc.ci.openshift.org/view/gcs/origin-ci-test/logs/" + j.FullName + "/" + j.ID
+	return "https://prow.ci.openshift.org/view/gcs/origin-ci-test/logs/" + j.FullName + "/" + j.ID
 }
 
 func (j Job) JUnitURL() (string, error) {
