@@ -21,6 +21,8 @@ var (
 )
 
 var valid_jobs = []string{
+	"release-openshift-ocp-installer-e2e-openstack-4.9",
+	"release-openshift-ocp-installer-e2e-openstack-serial-4.9",
 	"release-openshift-ocp-installer-e2e-openstack-4.8",
 	"release-openshift-ocp-installer-e2e-openstack-serial-4.8",
 	"periodic-ci-openshift-release-master-ci-4.7-e2e-openstack-parallel",
