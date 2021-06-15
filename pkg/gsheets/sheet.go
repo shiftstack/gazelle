@@ -23,18 +23,18 @@ type Sheet struct {
 
 func (s *Sheet) getID() int64 {
 	innerMap := map[string]int64{
-		"release-openshift-ocp-installer-e2e-openstack-4.8":        18319342,
-		"release-openshift-ocp-installer-e2e-openstack-serial-4.8": 1675306162,
-		"release-openshift-ocp-installer-e2e-openstack-4.7":        1835312929,
-		"release-openshift-ocp-installer-e2e-openstack-serial-4.7": 1216933186,
-		"release-openshift-ocp-installer-e2e-openstack-4.6":        663598205,
-		"release-openshift-ocp-installer-e2e-openstack-serial-4.6": 1620677487,
-		"release-openshift-ocp-installer-e2e-openstack-4.5":        1993874237,
-		"release-openshift-ocp-installer-e2e-openstack-serial-4.5": 605104092,
-		"release-openshift-ocp-installer-e2e-openstack-4.4":        552238361,
-		"release-openshift-ocp-installer-e2e-openstack-serial-4.4": 923764376,
-		"release-openshift-ocp-installer-e2e-openstack-4.3":        1408408210,
-		"release-openshift-ocp-installer-e2e-openstack-serial-4.3": 1992493886,
+		"release-openshift-ocp-installer-e2e-openstack-4.8":                  18319342,
+		"release-openshift-ocp-installer-e2e-openstack-serial-4.8":           1675306162,
+		"periodic-ci-openshift-release-master-ci-4.7-e2e-openstack-parallel": 1835312929,
+		"periodic-ci-openshift-release-master-ci-4.7-e2e-openstack-serial":   1216933186,
+		"release-openshift-ocp-installer-e2e-openstack-4.6":                  663598205,
+		"release-openshift-ocp-installer-e2e-openstack-serial-4.6":           1620677487,
+		"release-openshift-ocp-installer-e2e-openstack-4.5":                  1993874237,
+		"release-openshift-ocp-installer-e2e-openstack-serial-4.5":           605104092,
+		"release-openshift-ocp-installer-e2e-openstack-4.4":                  552238361,
+		"release-openshift-ocp-installer-e2e-openstack-serial-4.4":           923764376,
+		"release-openshift-ocp-installer-e2e-openstack-4.3":                  1408408210,
+		"release-openshift-ocp-installer-e2e-openstack-serial-4.3":           1992493886,
 	}
 
 	sheetId, ok := innerMap[s.JobName]
@@ -47,18 +47,18 @@ func (s *Sheet) getID() int64 {
 
 func (s *Sheet) getName() string {
 	innerMap := map[string]string{
-		"release-openshift-ocp-installer-e2e-openstack-4.8":        "Parallel OCP 4.8",
-		"release-openshift-ocp-installer-e2e-openstack-serial-4.8": "Serial OCP 4.8",
-		"release-openshift-ocp-installer-e2e-openstack-4.7":        "Parallel OCP 4.7",
-		"release-openshift-ocp-installer-e2e-openstack-serial-4.7": "Serial OCP 4.7",
-		"release-openshift-ocp-installer-e2e-openstack-4.6":        "Parallel OCP 4.6",
-		"release-openshift-ocp-installer-e2e-openstack-serial-4.6": "Serial OCP 4.6",
-		"release-openshift-ocp-installer-e2e-openstack-4.5":        "Parallel OCP 4.5",
-		"release-openshift-ocp-installer-e2e-openstack-serial-4.5": "Serial OCP 4.5",
-		"release-openshift-ocp-installer-e2e-openstack-4.4":        "Parallel OCP 4.4",
-		"release-openshift-ocp-installer-e2e-openstack-serial-4.4": "Serial OCP 4.4",
-		"release-openshift-ocp-installer-e2e-openstack-4.3":        "Parallel OCP 4.3",
-		"release-openshift-ocp-installer-e2e-openstack-serial-4.3": "Serial OCP 4.3",
+		"release-openshift-ocp-installer-e2e-openstack-4.8":                  "Parallel OCP 4.8",
+		"release-openshift-ocp-installer-e2e-openstack-serial-4.8":           "Serial OCP 4.8",
+		"periodic-ci-openshift-release-master-ci-4.7-e2e-openstack-parallel": "Parallel OCP 4.7",
+		"periodic-ci-openshift-release-master-ci-4.7-e2e-openstack-serial":   "Serial OCP 4.7",
+		"release-openshift-ocp-installer-e2e-openstack-4.6":                  "Parallel OCP 4.6",
+		"release-openshift-ocp-installer-e2e-openstack-serial-4.6":           "Serial OCP 4.6",
+		"release-openshift-ocp-installer-e2e-openstack-4.5":                  "Parallel OCP 4.5",
+		"release-openshift-ocp-installer-e2e-openstack-serial-4.5":           "Serial OCP 4.5",
+		"release-openshift-ocp-installer-e2e-openstack-4.4":                  "Parallel OCP 4.4",
+		"release-openshift-ocp-installer-e2e-openstack-serial-4.4":           "Serial OCP 4.4",
+		"release-openshift-ocp-installer-e2e-openstack-4.3":                  "Parallel OCP 4.3",
+		"release-openshift-ocp-installer-e2e-openstack-serial-4.3":           "Serial OCP 4.3",
 	}
 
 	sheetName, ok := innerMap[s.JobName]
