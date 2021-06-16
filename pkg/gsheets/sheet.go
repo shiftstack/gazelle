@@ -33,10 +33,6 @@ func (s *Sheet) getID() int64 {
 		"release-openshift-ocp-installer-e2e-openstack-serial-4.6":           1620677487,
 		"release-openshift-ocp-installer-e2e-openstack-4.5":                  1993874237,
 		"release-openshift-ocp-installer-e2e-openstack-serial-4.5":           605104092,
-		"release-openshift-ocp-installer-e2e-openstack-4.4":                  552238361,
-		"release-openshift-ocp-installer-e2e-openstack-serial-4.4":           923764376,
-		"release-openshift-ocp-installer-e2e-openstack-4.3":                  1408408210,
-		"release-openshift-ocp-installer-e2e-openstack-serial-4.3":           1992493886,
 	}
 
 	sheetId, ok := innerMap[s.JobName]
@@ -59,10 +55,6 @@ func (s *Sheet) getName() string {
 		"release-openshift-ocp-installer-e2e-openstack-serial-4.6":           "Serial OCP 4.6",
 		"release-openshift-ocp-installer-e2e-openstack-4.5":                  "Parallel OCP 4.5",
 		"release-openshift-ocp-installer-e2e-openstack-serial-4.5":           "Serial OCP 4.5",
-		"release-openshift-ocp-installer-e2e-openstack-4.4":                  "Parallel OCP 4.4",
-		"release-openshift-ocp-installer-e2e-openstack-serial-4.4":           "Serial OCP 4.4",
-		"release-openshift-ocp-installer-e2e-openstack-4.3":                  "Parallel OCP 4.3",
-		"release-openshift-ocp-installer-e2e-openstack-serial-4.3":           "Serial OCP 4.3",
 	}
 
 	sheetName, ok := innerMap[s.JobName]

@@ -31,10 +31,6 @@ var valid_jobs = []string{
 	"release-openshift-ocp-installer-e2e-openstack-serial-4.6",
 	"release-openshift-ocp-installer-e2e-openstack-4.5",
 	"release-openshift-ocp-installer-e2e-openstack-serial-4.5",
-	"release-openshift-ocp-installer-e2e-openstack-4.4",
-	"release-openshift-ocp-installer-e2e-openstack-serial-4.4",
-	"release-openshift-ocp-installer-e2e-openstack-4.3",
-	"release-openshift-ocp-installer-e2e-openstack-serial-4.3",
 }
 
 func toBufferedChannel(numbers ...int64) <-chan int64 {
