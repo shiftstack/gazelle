@@ -23,14 +23,14 @@ type Sheet struct {
 
 func (s *Sheet) getID() int64 {
 	innerMap := map[string]int64{
-		"release-openshift-ocp-installer-e2e-openstack-4.9":                  148070958,
-		"release-openshift-ocp-installer-e2e-openstack-serial-4.9":           535126191,
-		"release-openshift-ocp-installer-e2e-openstack-4.8":                  18319342,
-		"release-openshift-ocp-installer-e2e-openstack-serial-4.8":           1675306162,
+		"periodic-ci-openshift-release-master-ci-4.9-e2e-openstack-parallel": 148070958,
+		"periodic-ci-openshift-release-master-ci-4.9-e2e-openstack-serial":   535126191,
+		"periodic-ci-openshift-release-master-ci-4.8-e2e-openstack-parallel": 18319342,
+		"periodic-ci-openshift-release-master-ci-4.8-e2e-openstack-serial":   1675306162,
 		"periodic-ci-openshift-release-master-ci-4.7-e2e-openstack-parallel": 1835312929,
 		"periodic-ci-openshift-release-master-ci-4.7-e2e-openstack-serial":   1216933186,
-		"release-openshift-ocp-installer-e2e-openstack-4.6":                  663598205,
-		"release-openshift-ocp-installer-e2e-openstack-serial-4.6":           1620677487,
+		"periodic-ci-openshift-release-master-ci-4.6-e2e-openstack-parallel": 663598205,
+		"periodic-ci-openshift-release-master-ci-4.6-e2e-openstack-serial":   1620677487,
 		"release-openshift-ocp-installer-e2e-openstack-4.5":                  1993874237,
 		"release-openshift-ocp-installer-e2e-openstack-serial-4.5":           605104092,
 		"release-openshift-ocp-installer-e2e-openstack-4.4":                  552238361,
@@ -49,14 +49,14 @@ func (s *Sheet) getID() int64 {
 
 func (s *Sheet) getName() string {
 	innerMap := map[string]string{
-		"release-openshift-ocp-installer-e2e-openstack-4.9":                  "Parallel OCP 4.9",
-		"release-openshift-ocp-installer-e2e-openstack-serial-4.9":           "Serial OCP 4.9",
-		"release-openshift-ocp-installer-e2e-openstack-4.8":                  "Parallel OCP 4.8",
-		"release-openshift-ocp-installer-e2e-openstack-serial-4.8":           "Serial OCP 4.8",
+		"periodic-ci-openshift-release-master-ci-4.9-e2e-openstack-parallel": "Parallel OCP 4.9",
+		"periodic-ci-openshift-release-master-ci-4.9-e2e-openstack-serial":   "Serial OCP 4.9",
+		"periodic-ci-openshift-release-master-ci-4.8-e2e-openstack-parallel": "Parallel OCP 4.8",
+		"periodic-ci-openshift-release-master-ci-4.8-e2e-openstack-serial":   "Serial OCP 4.8",
 		"periodic-ci-openshift-release-master-ci-4.7-e2e-openstack-parallel": "Parallel OCP 4.7",
 		"periodic-ci-openshift-release-master-ci-4.7-e2e-openstack-serial":   "Serial OCP 4.7",
-		"release-openshift-ocp-installer-e2e-openstack-4.6":                  "Parallel OCP 4.6",
-		"release-openshift-ocp-installer-e2e-openstack-serial-4.6":           "Serial OCP 4.6",
+		"periodic-ci-openshift-release-master-ci-4.6-e2e-openstack-parallel": "Parallel OCP 4.6",
+		"periodic-ci-openshift-release-master-ci-4.6-e2e-openstack-serial":   "Serial OCP 4.6",
 		"release-openshift-ocp-installer-e2e-openstack-4.5":                  "Parallel OCP 4.5",
 		"release-openshift-ocp-installer-e2e-openstack-serial-4.5":           "Serial OCP 4.5",
 		"release-openshift-ocp-installer-e2e-openstack-4.4":                  "Parallel OCP 4.4",
