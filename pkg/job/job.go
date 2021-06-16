@@ -132,7 +132,7 @@ func (j Job) NodesURL() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return j.baseURL() + "/artifacts/" + name + "/openstack_nodes.log", nil
+	return j.baseURL() + "/artifacts/" + name + "/openstack-gather/artifacts/openstack_nodes.log", nil
 }
 
 func (j Job) Nodes() (io.Reader, error) {
