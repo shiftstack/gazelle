@@ -12,7 +12,7 @@ import (
 	"github.com/shiftstack/gazelle/pkg/cache"
 )
 
-var jobTargetRexexp = regexp.MustCompile(`release-openshift-(ocp|origin)-installer-(.*)-\d.\d`)
+var jobTargetRexexp = regexp.MustCompile(`^periodic-ci-openshift-release-master-ci-\d\.\d-(.*)$`)
 
 type Job struct {
 	FullName       string
@@ -39,8 +39,8 @@ func (j *Job) fetch(file string) (io.Reader, error) {
 func (j *Job) Name() (string, error) {
 	matches := jobTargetRexexp.FindStringSubmatch(j.FullName)
 
-	if len(matches) >= 3 {
-		return matches[2], nil
+	if len(matches) >= 2 {
+		return matches[1], nil
 	} else {
 		return "", fmt.Errorf("Could not determine job name from %s", j.FullName)
 	}
@@ -116,7 +116,7 @@ func (j Job) MachinesURL() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return j.baseURL() + "/artifacts/" + name + "/machines.json", nil
+	return j.baseURL() + "/artifacts/" + name + "/gather-extra/artifacts/machines.json", nil
 }
 
 func (j Job) Machines() (io.Reader, error) {
@@ -173,7 +173,7 @@ func (j Job) JUnitURL() (string, error) {
 		line := scanner.Text()
 		if len(line) >= targetLength && line[:len(target)] == target {
 			filename := line[len(target):]
-			return j.baseURL() + "/artifacts/" + jobName + "/junit/" + filename, scanner.Err()
+			return j.baseURL() + "/artifacts/" + jobName + "/openshift-e2e-test/artifacts/junit/" + filename, scanner.Err()
 		}
 	}
 
