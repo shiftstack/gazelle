@@ -25,6 +25,7 @@ func (s *Sheet) getID() int64 {
 	innerMap := map[string]int64{
 		"periodic-ci-openshift-release-master-ci-4.9-e2e-openstack-parallel": 148070958,
 		"periodic-ci-openshift-release-master-ci-4.9-e2e-openstack-serial":   535126191,
+		"periodic-ci-openshift-release-master-ci-4.9-e2e-openstack-ovn":      833224524,
 		"periodic-ci-openshift-release-master-ci-4.8-e2e-openstack-parallel": 18319342,
 		"periodic-ci-openshift-release-master-ci-4.8-e2e-openstack-serial":   1675306162,
 		"periodic-ci-openshift-release-master-ci-4.7-e2e-openstack-parallel": 1835312929,
@@ -47,6 +48,7 @@ func (s *Sheet) getName() string {
 	innerMap := map[string]string{
 		"periodic-ci-openshift-release-master-ci-4.9-e2e-openstack-parallel": "Parallel OCP 4.9",
 		"periodic-ci-openshift-release-master-ci-4.9-e2e-openstack-serial":   "Serial OCP 4.9",
+		"periodic-ci-openshift-release-master-ci-4.9-e2e-openstack-ovn":      "OCP 4.9 OVN",
 		"periodic-ci-openshift-release-master-ci-4.8-e2e-openstack-parallel": "Parallel OCP 4.8",
 		"periodic-ci-openshift-release-master-ci-4.8-e2e-openstack-serial":   "Serial OCP 4.8",
 		"periodic-ci-openshift-release-master-ci-4.7-e2e-openstack-parallel": "Parallel OCP 4.7",
