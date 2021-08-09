@@ -14,6 +14,29 @@ import (
 	"google.golang.org/api/sheets/v4"
 )
 
+var (
+	credentialsPath string
+
+	// The file token.json stores the user's access and refresh tokens, and
+	// is created interactively when the authorization flow completes for
+	// the first time.
+	tokenPath string
+)
+
+func init() {
+	credentialsPath = "credentials.json"
+	if cp := os.Getenv("CIREPORT_CREDENTIALS_FILE"); cp != "" {
+		credentialsPath = cp
+		log.Printf("Using credentials from %q", cp)
+	}
+
+	tokenPath = "token.json"
+	if tp := os.Getenv("CIREPORT_TOKEN_FILE"); tp != "" {
+		tokenPath = tp
+		log.Printf("Using token from %q", tp)
+	}
+}
+
 type Client struct {
 	service       *sheets.Service
 	spreadsheetId string
@@ -28,7 +51,7 @@ func NewClient() Client {
 }
 
 func getService() *sheets.Service {
-	b, err := ioutil.ReadFile("credentials.json")
+	b, err := ioutil.ReadFile(credentialsPath)
 	if err != nil {
 		log.Fatalf("Unable to read client secret file: %v", err)
 	}
@@ -49,14 +72,10 @@ func getService() *sheets.Service {
 
 // Retrieve a token, saves the token, then returns the generated client.
 func getClient(config *oauth2.Config) *http.Client {
-	// The file token.json stores the user's access and refresh tokens, and is
-	// created automatically when the authorization flow completes for the first
-	// time.
-	tokFile := "token.json"
-	tok, err := tokenFromFile(tokFile)
+	tok, err := tokenFromFile(tokenPath)
 	if err != nil {
 		tok = getTokenFromWeb(config)
-		saveToken(tokFile, tok)
+		saveToken(tokenPath, tok)
 	}
 	return config.Client(context.Background(), tok)
 }
