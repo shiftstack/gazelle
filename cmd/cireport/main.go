@@ -23,6 +23,7 @@ var (
 var valid_jobs = []string{
 	"periodic-ci-openshift-release-master-ci-4.9-e2e-openstack-parallel",
 	"periodic-ci-openshift-release-master-ci-4.9-e2e-openstack-serial",
+	"periodic-ci-openshift-release-master-ci-4.9-upgrade-from-stable-4.8-e2e-openstack-upgrade",
 	"periodic-ci-openshift-release-master-ci-4.9-e2e-openstack-ovn",
 	"periodic-ci-openshift-release-master-nightly-4.9-e2e-openstack-az",
 	"periodic-ci-openshift-release-master-nightly-4.9-e2e-openstack-fips",

@@ -12,7 +12,10 @@ import (
 	"github.com/shiftstack/gazelle/pkg/cache"
 )
 
-var jobTargetRexexp = regexp.MustCompile(`^periodic-ci-openshift-release-master-ci-\d\.\d-(.*)$`)
+var (
+	jobTargetRegexp        = regexp.MustCompile(`^periodic-ci-openshift-release-master-ci-\d\.\d-(.*)$`)
+	jobTargetRegexpUpgrade = regexp.MustCompile(`e2e-openstack-upgrade$`)
+)
 
 type Job struct {
 	FullName       string
@@ -37,13 +40,15 @@ func (j *Job) fetch(file string) (io.Reader, error) {
 }
 
 func (j *Job) Name() (string, error) {
-	matches := jobTargetRexexp.FindStringSubmatch(j.FullName)
-
-	if len(matches) >= 2 {
-		return matches[1], nil
-	} else {
-		return "", fmt.Errorf("Could not determine job name from %s", j.FullName)
+	if jobTargetRegexpUpgrade.FindString(j.FullName) != "" {
+		return "e2e-openstack-upgrade", nil
 	}
+
+	if matches := jobTargetRegexp.FindStringSubmatch(j.FullName); len(matches) >= 2 {
+		return matches[1], nil
+	}
+
+	return "", fmt.Errorf("Could not determine job name from %s", j.FullName)
 }
 
 func (j Job) StartTime() (time.Time, error) {
