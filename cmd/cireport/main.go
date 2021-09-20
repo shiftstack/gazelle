@@ -21,6 +21,7 @@ var (
 )
 
 var valid_jobs = []string{
+	"periodic-ci-openshift-release-master-ci-4.10-e2e-openstack-kuryr",
 	"periodic-ci-openshift-release-master-ci-4.10-e2e-openstack-parallel",
 	"periodic-ci-openshift-release-master-ci-4.10-e2e-openstack-serial",
 	"periodic-ci-openshift-release-master-ci-4.10-upgrade-from-stable-4.9-e2e-openstack-upgrade",
