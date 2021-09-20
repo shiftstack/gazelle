@@ -23,6 +23,7 @@ type Sheet struct {
 
 func (s *Sheet) getID() int64 {
 	innerMap := map[string]int64{
+		"periodic-ci-openshift-release-master-ci-4.10-e2e-openstack-kuryr":                           143615576,
 		"periodic-ci-openshift-release-master-ci-4.10-e2e-openstack-parallel":                        1776325467,
 		"periodic-ci-openshift-release-master-ci-4.10-e2e-openstack-serial":                          201605189,
 		"periodic-ci-openshift-release-master-ci-4.10-upgrade-from-stable-4.9-e2e-openstack-upgrade": 174185991,
@@ -55,6 +56,7 @@ func (s *Sheet) getID() int64 {
 
 func (s *Sheet) getName() string {
 	innerMap := map[string]string{
+		"periodic-ci-openshift-release-master-ci-4.10-e2e-openstack-kuryr":                           "Kuryr 4.10",
 		"periodic-ci-openshift-release-master-ci-4.10-e2e-openstack-parallel":                        "OCP 4.10 Parallel",
 		"periodic-ci-openshift-release-master-ci-4.10-e2e-openstack-serial":                          "OCP 4.10 Serial",
 		"periodic-ci-openshift-release-master-ci-4.10-upgrade-from-stable-4.9-e2e-openstack-upgrade": "OCP 4.10 Upgrade",
