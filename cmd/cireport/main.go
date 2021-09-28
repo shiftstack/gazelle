@@ -59,8 +59,8 @@ func toBufferedChannel(numbers ...int64) <-chan int64 {
 }
 
 func main() {
-	ctx := context.TODO()
-	client := gsheets.NewClient()
+	ctx := context.Background()
+	client := gsheets.NewClient(ctx)
 
 	var jobs []string
 	if requestedJobName == "" {
