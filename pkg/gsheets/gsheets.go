@@ -11,6 +11,7 @@ import (
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+	"google.golang.org/api/option"
 	"google.golang.org/api/sheets/v4"
 )
 
@@ -42,15 +43,15 @@ type Client struct {
 	spreadsheetId string
 }
 
-func NewClient() Client {
+func NewClient(ctx context.Context) Client {
 	c := Client{
-		service:       getService(),
+		service:       getService(ctx),
 		spreadsheetId: "16_3V8Uh1h4wIVnSA_fGHs9PrAnYdvGrX7tREVecexc4",
 	}
 	return c
 }
 
-func getService() *sheets.Service {
+func getService(ctx context.Context) *sheets.Service {
 	b, err := ioutil.ReadFile(credentialsPath)
 	if err != nil {
 		log.Fatalf("Unable to read client secret file: %v", err)
@@ -61,9 +62,9 @@ func getService() *sheets.Service {
 	if err != nil {
 		log.Fatalf("Unable to parse client secret file to config: %v", err)
 	}
-	client := getClient(config)
+	client := getClient(ctx, config)
 
-	srv, err := sheets.New(client)
+	srv, err := sheets.NewService(ctx, option.WithHTTPClient(client))
 	if err != nil {
 		log.Fatalf("Unable to retrieve Sheets client: %v", err)
 	}
@@ -71,17 +72,17 @@ func getService() *sheets.Service {
 }
 
 // Retrieve a token, saves the token, then returns the generated client.
-func getClient(config *oauth2.Config) *http.Client {
+func getClient(ctx context.Context, config *oauth2.Config) *http.Client {
 	tok, err := tokenFromFile(tokenPath)
 	if err != nil {
-		tok = getTokenFromWeb(config)
+		tok = getTokenFromWeb(ctx, config)
 		saveToken(tokenPath, tok)
 	}
-	return config.Client(context.Background(), tok)
+	return config.Client(ctx, tok)
 }
 
 // Request a token from the web, then returns the retrieved token.
-func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
+func getTokenFromWeb(ctx context.Context, config *oauth2.Config) *oauth2.Token {
 	authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
 	fmt.Printf("Go to the following link in your browser then type the "+
 		"authorization code: \n%v\n", authURL)
@@ -91,7 +92,7 @@ func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 		log.Fatalf("Unable to read authorization code: %v", err)
 	}
 
-	tok, err := config.Exchange(context.TODO(), authCode)
+	tok, err := config.Exchange(ctx, authCode)
 	if err != nil {
 		log.Fatalf("Unable to retrieve token from web: %v", err)
 	}
