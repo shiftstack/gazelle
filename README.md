@@ -30,7 +30,7 @@ Usage of ./cireport:
   -id string
         Job ID. If unset, it consists of all new runs since last time the spreadsheet was updated.
   -job string
-        Full name of the test job (e.g. periodic-ci-openshift-release-master-ci-4.7-e2e-openstack-serial). All known jobs if unset.
+        Full name of the test job (e.g. periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.7-e2e-openstack-serial). All known jobs if unset.
   -user string
         Username to use for CI Cop
 ```
@@ -42,10 +42,10 @@ Update the spreadsheet with all latest results for all jobs, with CI Cop Axel Fo
 
 Update the spreadsheet with latest results for the parallel conformance suite on 4.7:
 ```shell
-./cireport -job periodic-ci-openshift-release-master-ci-4.7-e2e-openstack-parallel
+./cireport -job periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.7-e2e-openstack-parallel
 ```
 
 Add results for job 345 for the 4.7 serial suite:
 ```shell
-./cireport -job periodic-ci-openshift-release-master-ci-4.7-e2e-openstack-serial -id 345
+./cireport -job periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.7-e2e-openstack-serial -id 345
 ```
