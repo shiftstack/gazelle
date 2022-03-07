@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	jobTargetRegexp        = regexp.MustCompile(`^periodic-ci-openshift-release-master-\w+-\d+\.\d+-(.*)$`)
+	jobTargetRegexp        = regexp.MustCompile(`^periodic-ci-shiftstack-shiftstack-ci-main-\w+-\d+\.\d+-(.*)$`)
 	jobTargetRegexpUpgrade = regexp.MustCompile(`e2e-openstack-upgrade$`)
 )
 
