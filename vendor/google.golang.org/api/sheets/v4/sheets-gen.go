@@ -1,4 +1,4 @@
-// Copyright 2021 Google LLC.
+// Copyright 2022 Google LLC.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -54,6 +54,7 @@ import (
 	"strings"
 
 	googleapi "google.golang.org/api/googleapi"
+	internal "google.golang.org/api/internal"
 	gensupport "google.golang.org/api/internal/gensupport"
 	option "google.golang.org/api/option"
 	internaloption "google.golang.org/api/option/internaloption"
@@ -102,7 +103,7 @@ const (
 
 // NewService creates a new Service.
 func NewService(ctx context.Context, opts ...option.ClientOption) (*Service, error) {
-	scopesOption := option.WithScopes(
+	scopesOption := internaloption.WithDefaultScopes(
 		"https://www.googleapis.com/auth/drive",
 		"https://www.googleapis.com/auth/drive.file",
 		"https://www.googleapis.com/auth/drive.readonly",
@@ -1036,6 +1037,7 @@ func (s *BandedRange) MarshalJSON() ([]byte, error) {
 // not set.
 type BandingProperties struct {
 	// FirstBandColor: The first color that is alternating. (Required)
+	// Deprecated: Use first_band_color_style.
 	FirstBandColor *Color `json:"firstBandColor,omitempty"`
 
 	// FirstBandColorStyle: The first color that is alternating. (Required)
@@ -1045,7 +1047,7 @@ type BandingProperties struct {
 	// FooterColor: The color of the last row or column. If this field is
 	// not set, the last row or column is filled with either
 	// first_band_color or second_band_color, depending on the color of the
-	// previous row or column.
+	// previous row or column. Deprecated: Use footer_color_style.
 	FooterColor *Color `json:"footerColor,omitempty"`
 
 	// FooterColorStyle: The color of the last row or column. If this field
@@ -1060,7 +1062,7 @@ type BandingProperties struct {
 	// alternate between first_band_color and second_band_color starting
 	// from the second row or column. Otherwise, the first row or column is
 	// filled with first_band_color and the colors proceed to alternate as
-	// they normally would.
+	// they normally would. Deprecated: Use header_color_style.
 	HeaderColor *Color `json:"headerColor,omitempty"`
 
 	// HeaderColorStyle: The color of the first row or column. If this field
@@ -1073,6 +1075,7 @@ type BandingProperties struct {
 	HeaderColorStyle *ColorStyle `json:"headerColorStyle,omitempty"`
 
 	// SecondBandColor: The second color that is alternating. (Required)
+	// Deprecated: Use second_band_color_style.
 	SecondBandColor *Color `json:"secondBandColor,omitempty"`
 
 	// SecondBandColorStyle: The second color that is alternating.
@@ -1121,7 +1124,8 @@ type BaselineValueFormat struct {
 	Description string `json:"description,omitempty"`
 
 	// NegativeColor: Color to be used, in case baseline value represents a
-	// negative change for key value. This field is optional.
+	// negative change for key value. This field is optional. Deprecated:
+	// Use negative_color_style.
 	NegativeColor *Color `json:"negativeColor,omitempty"`
 
 	// NegativeColorStyle: Color to be used, in case baseline value
@@ -1135,7 +1139,8 @@ type BaselineValueFormat struct {
 	Position *TextPosition `json:"position,omitempty"`
 
 	// PositiveColor: Color to be used, in case baseline value represents a
-	// positive change for key value. This field is optional.
+	// positive change for key value. This field is optional. Deprecated:
+	// Use positive_color_style.
 	PositiveColor *Color `json:"positiveColor,omitempty"`
 
 	// PositiveColorStyle: Color to be used, in case baseline value
@@ -1267,6 +1272,7 @@ func (s *BasicChartDomain) MarshalJSON() ([]byte, error) {
 type BasicChartSeries struct {
 	// Color: The color for elements (such as bars, lines, and points)
 	// associated with this series. If empty, a default color is used.
+	// Deprecated: Use color_style.
 	Color *Color `json:"color,omitempty"`
 
 	// ColorStyle: The color for elements (such as bars, lines, and points)
@@ -1519,7 +1525,7 @@ func (s *BasicFilter) MarshalJSON() ([]byte, error) {
 // single series data point.
 type BasicSeriesDataPointStyleOverride struct {
 	// Color: Color of the series data point. If empty, the series default
-	// is used.
+	// is used. Deprecated: Use color_style.
 	Color *Color `json:"color,omitempty"`
 
 	// ColorStyle: Color of the series data point. If empty, the series
@@ -1590,10 +1596,11 @@ func (s *BatchClearValuesByDataFilterRequest) MarshalJSON() ([]byte, error) {
 // BatchClearValuesByDataFilterResponse: The response when clearing a
 // range of values selected with DataFilters in a spreadsheet.
 type BatchClearValuesByDataFilterResponse struct {
-	// ClearedRanges: The ranges that were cleared, in A1 notation. If the
-	// requests are for an unbounded range or a ranger larger than the
-	// bounds of the sheet, this is the actual ranges that were cleared,
-	// bounded to the sheet's limits.
+	// ClearedRanges: The ranges that were cleared, in A1 notation
+	// (/sheets/api/guides/concepts#cell). If the requests are for an
+	// unbounded range or a ranger larger than the bounds of the sheet, this
+	// is the actual ranges that were cleared, bounded to the sheet's
+	// limits.
 	ClearedRanges []string `json:"clearedRanges,omitempty"`
 
 	// SpreadsheetId: The spreadsheet the updates were applied to.
@@ -1629,7 +1636,8 @@ func (s *BatchClearValuesByDataFilterResponse) MarshalJSON() ([]byte, error) {
 // BatchClearValuesRequest: The request for clearing more than one range
 // of values in a spreadsheet.
 type BatchClearValuesRequest struct {
-	// Ranges: The ranges to clear, in A1 or R1C1 notation.
+	// Ranges: The ranges to clear, in A1 notation or R1C1 notation
+	// (/sheets/api/guides/concepts#cell).
 	Ranges []string `json:"ranges,omitempty"`
 
 	// ForceSendFields is a list of field names (e.g. "Ranges") to
@@ -1713,12 +1721,12 @@ type BatchGetValuesByDataFilterRequest struct {
 	// (left of the decimal) counts the days since December 30th 1899. The
 	// fractional portion (right of the decimal) counts the time as a
 	// fraction of the day. For example, January 1st 1900 at noon would be
-	// 2.5, 2 because it's 2 days after December 30st 1899, and .5 because
+	// 2.5, 2 because it's 2 days after December 30th 1899, and .5 because
 	// noon is half a day. February 1st 1900 at 3pm would be 33.625. This
 	// correctly treats the year 1900 as not a leap year.
 	//   "FORMATTED_STRING" - Instructs date, time, datetime, and duration
-	// fields to be output as strings in their given number format (which is
-	// dependent on the spreadsheet locale).
+	// fields to be output as strings in their given number format (which
+	// depends on the spreadsheet locale).
 	DateTimeRenderOption string `json:"dateTimeRenderOption,omitempty"`
 
 	// MajorDimension: The major dimension that results should use. For
@@ -1966,12 +1974,12 @@ type BatchUpdateValuesByDataFilterRequest struct {
 	// (left of the decimal) counts the days since December 30th 1899. The
 	// fractional portion (right of the decimal) counts the time as a
 	// fraction of the day. For example, January 1st 1900 at noon would be
-	// 2.5, 2 because it's 2 days after December 30st 1899, and .5 because
+	// 2.5, 2 because it's 2 days after December 30th 1899, and .5 because
 	// noon is half a day. February 1st 1900 at 3pm would be 33.625. This
 	// correctly treats the year 1900 as not a leap year.
 	//   "FORMATTED_STRING" - Instructs date, time, datetime, and duration
-	// fields to be output as strings in their given number format (which is
-	// dependent on the spreadsheet locale).
+	// fields to be output as strings in their given number format (which
+	// depends on the spreadsheet locale).
 	ResponseDateTimeRenderOption string `json:"responseDateTimeRenderOption,omitempty"`
 
 	// ResponseValueRenderOption: Determines how values in the response
@@ -2105,12 +2113,12 @@ type BatchUpdateValuesRequest struct {
 	// (left of the decimal) counts the days since December 30th 1899. The
 	// fractional portion (right of the decimal) counts the time as a
 	// fraction of the day. For example, January 1st 1900 at noon would be
-	// 2.5, 2 because it's 2 days after December 30st 1899, and .5 because
+	// 2.5, 2 because it's 2 days after December 30th 1899, and .5 because
 	// noon is half a day. February 1st 1900 at 3pm would be 33.625. This
 	// correctly treats the year 1900 as not a leap year.
 	//   "FORMATTED_STRING" - Instructs date, time, datetime, and duration
-	// fields to be output as strings in their given number format (which is
-	// dependent on the spreadsheet locale).
+	// fields to be output as strings in their given number format (which
+	// depends on the spreadsheet locale).
 	ResponseDateTimeRenderOption string `json:"responseDateTimeRenderOption,omitempty"`
 
 	// ResponseValueRenderOption: Determines how values in the response
@@ -2507,7 +2515,7 @@ func (s *BooleanRule) MarshalJSON() ([]byte, error) {
 
 // Border: A border along a cell.
 type Border struct {
-	// Color: The color of the border.
+	// Color: The color of the border. Deprecated: Use [color_style].
 	Color *Color `json:"color,omitempty"`
 
 	// ColorStyle: The color of the border. If color is also set, this field
@@ -2594,7 +2602,8 @@ func (s *Borders) MarshalJSON() ([]byte, error) {
 
 // BubbleChartSpec: A bubble chart.
 type BubbleChartSpec struct {
-	// BubbleBorderColor: The bubble border color.
+	// BubbleBorderColor: The bubble border color. Deprecated: Use
+	// bubble_border_color_style.
 	BubbleBorderColor *Color `json:"bubbleBorderColor,omitempty"`
 
 	// BubbleBorderColorStyle: The bubble border color. If
@@ -2933,7 +2942,8 @@ func (s *CellData) MarshalJSON() ([]byte, error) {
 
 // CellFormat: The format of a cell.
 type CellFormat struct {
-	// BackgroundColor: The background color of the cell.
+	// BackgroundColor: The background color of the cell. Deprecated: Use
+	// background_color_style.
 	BackgroundColor *Color `json:"backgroundColor,omitempty"`
 
 	// BackgroundColorStyle: The background color of the cell. If
@@ -3400,7 +3410,7 @@ type ChartSpec struct {
 	AltText string `json:"altText,omitempty"`
 
 	// BackgroundColor: The background color of the entire chart. Not
-	// applicable to Org charts.
+	// applicable to Org charts. Deprecated: Use background_color_style.
 	BackgroundColor *Color `json:"backgroundColor,omitempty"`
 
 	// BackgroundColorStyle: The background color of the entire chart. Not
@@ -4049,6 +4059,8 @@ type DataExecutionStatus struct {
 	//   "TIMED_OUT" - The data execution timed out.
 	//   "TOO_MANY_ROWS" - The data execution returns more rows than the
 	// limit.
+	//   "TOO_MANY_COLUMNS" - The data execution returns more columns than
+	// the limit.
 	//   "TOO_MANY_CELLS" - The data execution returns more cells than the
 	// limit.
 	//   "ENGINE" - Error is received from the backend data execution engine
@@ -6101,7 +6113,7 @@ func (s *EmbeddedChart) MarshalJSON() ([]byte, error) {
 
 // EmbeddedObjectBorder: A border along an embedded object.
 type EmbeddedObjectBorder struct {
-	// Color: The color of the border.
+	// Color: The color of the border. Deprecated: Use color_style.
 	Color *Color `json:"color,omitempty"`
 
 	// ColorStyle: The color of the border. If color is also set, this field
@@ -6286,7 +6298,8 @@ type FilterCriteria struct {
 
 	// VisibleBackgroundColor: The background fill color to filter by; only
 	// cells with this fill color are shown. Mutually exclusive with
-	// visible_foreground_color.
+	// visible_foreground_color. Deprecated: Use
+	// visible_background_color_style.
 	VisibleBackgroundColor *Color `json:"visibleBackgroundColor,omitempty"`
 
 	// VisibleBackgroundColorStyle: The background fill color to filter by;
@@ -6298,7 +6311,8 @@ type FilterCriteria struct {
 
 	// VisibleForegroundColor: The foreground color to filter by; only cells
 	// with this foreground color are shown. Mutually exclusive with
-	// visible_background_color.
+	// visible_background_color. Deprecated: Use
+	// visible_foreground_color_style.
 	VisibleForegroundColor *Color `json:"visibleForegroundColor,omitempty"`
 
 	// VisibleForegroundColorStyle: The foreground color to filter by; only
@@ -6726,17 +6740,17 @@ func (s *GridProperties) MarshalJSON() ([]byte, error) {
 // are half open, i.e. the start index is inclusive and the end index is
 // exclusive -- [start_index, end_index). Missing indexes indicate the
 // range is unbounded on that side. For example, if "Sheet1" is sheet
-// ID 0, then: `Sheet1!A1:A1 == sheet_id: 0, start_row_index: 0,
-// end_row_index: 1, start_column_index: 0, end_column_index: 1`
-// `Sheet1!A3:B4 == sheet_id: 0, start_row_index: 2, end_row_index: 4,
-// start_column_index: 0, end_column_index: 2` `Sheet1!A:B == sheet_id:
-// 0, start_column_index: 0, end_column_index: 2` `Sheet1!A5:B ==
-// sheet_id: 0, start_row_index: 4, start_column_index: 0,
-// end_column_index: 2` `Sheet1 == sheet_id:0` The start index must
-// always be less than or equal to the end index. If the start index
-// equals the end index, then the range is empty. Empty ranges are
-// typically not meaningful and are usually rendered in the UI as
-// `#REF!`.
+// ID 123456, then: `Sheet1!A1:A1 == sheet_id: 123456, start_row_index:
+// 0, end_row_index: 1, start_column_index: 0, end_column_index: 1`
+// `Sheet1!A3:B4 == sheet_id: 123456, start_row_index: 2, end_row_index:
+// 4, start_column_index: 0, end_column_index: 2` `Sheet1!A:B ==
+// sheet_id: 123456, start_column_index: 0, end_column_index: 2`
+// `Sheet1!A5:B == sheet_id: 123456, start_row_index: 4,
+// start_column_index: 0, end_column_index: 2` `Sheet1 == sheet_id:
+// 123456` The start index must always be less than or equal to the end
+// index. If the start index equals the end index, then the range is
+// empty. Empty ranges are typically not meaningful and are usually
+// rendered in the UI as `#REF!`.
 type GridRange struct {
 	// EndColumnIndex: The end column (exclusive) of the range, or not set
 	// if unbounded.
@@ -6943,7 +6957,7 @@ func (s *HistogramRule) UnmarshalJSON(data []byte) error {
 // data.
 type HistogramSeries struct {
 	// BarColor: The color of the column representing this series in each
-	// bucket. This field is optional.
+	// bucket. This field is optional. Deprecated: Use bar_color_style.
 	BarColor *Color `json:"barColor,omitempty"`
 
 	// BarColorStyle: The color of the column representing this series in
@@ -7064,7 +7078,8 @@ func (s *InsertRangeRequest) MarshalJSON() ([]byte, error) {
 // conditional format. These pin the gradient color scale according to
 // the color, type and value chosen.
 type InterpolationPoint struct {
-	// Color: The color this interpolation point should use.
+	// Color: The color this interpolation point should use. Deprecated: Use
+	// color_style.
 	Color *Color `json:"color,omitempty"`
 
 	// ColorStyle: The color this interpolation point should use. If color
@@ -7637,7 +7652,8 @@ type OrgChartSpec struct {
 	// chart. Labels must be unique.
 	Labels *ChartData `json:"labels,omitempty"`
 
-	// NodeColor: The color of the org chart nodes.
+	// NodeColor: The color of the org chart nodes. Deprecated: Use
+	// node_color_style.
 	NodeColor *Color `json:"nodeColor,omitempty"`
 
 	// NodeColorStyle: The color of the org chart nodes. If node_color is
@@ -7659,6 +7675,7 @@ type OrgChartSpec struct {
 	ParentLabels *ChartData `json:"parentLabels,omitempty"`
 
 	// SelectedNodeColor: The color of the selected org chart nodes.
+	// Deprecated: Use selected_node_color_style.
 	SelectedNodeColor *Color `json:"selectedNodeColor,omitempty"`
 
 	// SelectedNodeColorStyle: The color of the selected org chart nodes. If
@@ -9383,7 +9400,8 @@ type SheetProperties struct {
 	// shows the preview of data.
 	SheetType string `json:"sheetType,omitempty"`
 
-	// TabColor: The color of the tab in the UI.
+	// TabColor: The color of the tab in the UI. Deprecated: Use
+	// tab_color_style.
 	TabColor *Color `json:"tabColor,omitempty"`
 
 	// TabColorStyle: The color of the tab in the UI. If tab_color is also
@@ -9464,7 +9482,8 @@ type SlicerSpec struct {
 	// If not set, default to `True`.
 	ApplyToPivotTables bool `json:"applyToPivotTables,omitempty"`
 
-	// BackgroundColor: The background color of the slicer.
+	// BackgroundColor: The background color of the slicer. Deprecated: Use
+	// background_color_style.
 	BackgroundColor *Color `json:"backgroundColor,omitempty"`
 
 	// BackgroundColorStyle: The background color of the slicer. If
@@ -9561,7 +9580,7 @@ func (s *SortRangeRequest) MarshalJSON() ([]byte, error) {
 type SortSpec struct {
 	// BackgroundColor: The background fill color to sort by; cells with
 	// this fill color are sorted to the top. Mutually exclusive with
-	// foreground_color.
+	// foreground_color. Deprecated: Use background_color_style.
 	BackgroundColor *Color `json:"backgroundColor,omitempty"`
 
 	// BackgroundColorStyle: The background fill color to sort by; cells
@@ -9578,7 +9597,7 @@ type SortSpec struct {
 
 	// ForegroundColor: The foreground color to sort by; cells with this
 	// foreground color are sorted to the top. Mutually exclusive with
-	// background_color.
+	// background_color. Deprecated: Use foreground_color_style.
 	ForegroundColor *Color `json:"foregroundColor,omitempty"`
 
 	// ForegroundColorStyle: The foreground color to sort by; cells with
@@ -9830,7 +9849,8 @@ type TextFormat struct {
 	// FontSize: The size of the font.
 	FontSize int64 `json:"fontSize,omitempty"`
 
-	// ForegroundColor: The foreground color of the text.
+	// ForegroundColor: The foreground color of the text. Deprecated: Use
+	// foreground_color_style.
 	ForegroundColor *Color `json:"foregroundColor,omitempty"`
 
 	// ForegroundColorStyle: The foreground color of the text. If
@@ -10125,7 +10145,7 @@ func (s *TimeOfDay) MarshalJSON() ([]byte, error) {
 type TreemapChartColorScale struct {
 	// MaxValueColor: The background color for cells with a color value
 	// greater than or equal to maxValue. Defaults to #109618 if not
-	// specified.
+	// specified. Deprecated: Use max_value_color_style.
 	MaxValueColor *Color `json:"maxValueColor,omitempty"`
 
 	// MaxValueColorStyle: The background color for cells with a color value
@@ -10136,7 +10156,7 @@ type TreemapChartColorScale struct {
 
 	// MidValueColor: The background color for cells with a color value at
 	// the midpoint between minValue and maxValue. Defaults to #efe6dc if
-	// not specified.
+	// not specified. Deprecated: Use mid_value_color_style.
 	MidValueColor *Color `json:"midValueColor,omitempty"`
 
 	// MidValueColorStyle: The background color for cells with a color value
@@ -10147,6 +10167,7 @@ type TreemapChartColorScale struct {
 
 	// MinValueColor: The background color for cells with a color value less
 	// than or equal to minValue. Defaults to #dc3912 if not specified.
+	// Deprecated: Use min_value_color_style.
 	MinValueColor *Color `json:"minValueColor,omitempty"`
 
 	// MinValueColorStyle: The background color for cells with a color value
@@ -10156,6 +10177,7 @@ type TreemapChartColorScale struct {
 
 	// NoDataColor: The background color for cells that have no color data
 	// associated with them. Defaults to #000000 if not specified.
+	// Deprecated: Use no_data_color_style.
 	NoDataColor *Color `json:"noDataColor,omitempty"`
 
 	// NoDataColorStyle: The background color for cells that have no color
@@ -10208,7 +10230,8 @@ type TreemapChartSpec struct {
 	// have noDataColor as their background color.
 	ColorScale *TreemapChartColorScale `json:"colorScale,omitempty"`
 
-	// HeaderColor: The background color for header cells.
+	// HeaderColor: The background color for header cells. Deprecated: Use
+	// header_color_style.
 	HeaderColor *Color `json:"headerColor,omitempty"`
 
 	// HeaderColorStyle: The background color for header cells. If
@@ -11201,8 +11224,8 @@ type UpdateValuesByDataFilterResponse struct {
 	// the request's `includeValuesInResponse` field was `true`.
 	UpdatedData *ValueRange `json:"updatedData,omitempty"`
 
-	// UpdatedRange: The range (in A1 notation) that updates were applied
-	// to.
+	// UpdatedRange: The range (in A1 notation
+	// (/sheets/api/guides/concepts#cell)) that updates were applied to.
 	UpdatedRange string `json:"updatedRange,omitempty"`
 
 	// UpdatedRows: The number of rows where at least one cell in the row
@@ -11303,11 +11326,12 @@ type ValueRange struct {
 	//   "COLUMNS" - Operates on the columns of a sheet.
 	MajorDimension string `json:"majorDimension,omitempty"`
 
-	// Range: The range the values cover, in A1 notation. For output, this
-	// range indicates the entire requested range, even though the values
-	// will exclude trailing rows and columns. When appending values, this
-	// field represents the range to search for a table, after which values
-	// will be appended.
+	// Range: The range the values cover, in A1 notation
+	// (/sheets/api/guides/concepts#cell). For output, this range indicates
+	// the entire requested range, even though the values will exclude
+	// trailing rows and columns. When appending values, this field
+	// represents the range to search for a table, after which values will
+	// be appended.
 	Range string `json:"range,omitempty"`
 
 	// Values: The data that was read or to be written. This is an array of
@@ -11349,7 +11373,7 @@ func (s *ValueRange) MarshalJSON() ([]byte, error) {
 
 // WaterfallChartColumnStyle: Styles for a waterfall chart column.
 type WaterfallChartColumnStyle struct {
-	// Color: The color of the column.
+	// Color: The color of the column. Deprecated: Use color_style.
 	Color *Color `json:"color,omitempty"`
 
 	// ColorStyle: The color of the column. If color is also set, this field
@@ -11630,7 +11654,7 @@ func (c *SpreadsheetsBatchUpdateCall) Header() http.Header {
 
 func (c *SpreadsheetsBatchUpdateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/20210915")
+	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/"+internal.Version)
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -11770,7 +11794,7 @@ func (c *SpreadsheetsCreateCall) Header() http.Header {
 
 func (c *SpreadsheetsCreateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/20210915")
+	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/"+internal.Version)
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -11865,17 +11889,21 @@ type SpreadsheetsGetCall struct {
 }
 
 // Get: Returns the spreadsheet at the given ID. The caller must specify
-// the spreadsheet ID. By default, data within grids will not be
-// returned. You can include grid data one of two ways: * Specify a
-// field mask listing your desired fields using the `fields` URL
-// parameter in HTTP * Set the includeGridData URL parameter to true. If
-// a field mask is set, the `includeGridData` parameter is ignored For
-// large spreadsheets, it is recommended to retrieve only the specific
-// fields of the spreadsheet that you want. To retrieve only subsets of
-// the spreadsheet, use the ranges URL parameter. Multiple ranges can be
-// specified. Limiting the range will return only the portions of the
-// spreadsheet that intersect the requested ranges. Ranges are specified
-// using A1 notation.
+// the spreadsheet ID. By default, data within grids is not returned.
+// You can include grid data in one of 2 ways: * Specify a field mask
+// listing your desired fields using the `fields` URL parameter in HTTP
+// * Set the includeGridData URL parameter to true. If a field mask is
+// set, the `includeGridData` parameter is ignored For large
+// spreadsheets, as a best practice, retrieve only the specific
+// spreadsheet fields that you want. To retrieve only subsets of
+// spreadsheet data, use the ranges URL parameter. Ranges are specified
+// using A1 notation (/sheets/api/guides/concepts#cell). You can define
+// a single cell (for example, `A1`) or multiple cells (for example,
+// `A1:D5`). You can also get cells from other sheets within the same
+// spreadsheet (for example, `Sheet2!A1:C4`) or retrieve multiple ranges
+// at once (for example, `?ranges=A1:D5&ranges=Sheet2!A1:C4`). Limiting
+// the range returns only the portions of the spreadsheet that intersect
+// the requested ranges.
 //
 // - spreadsheetId: The spreadsheet to request.
 func (r *SpreadsheetsService) Get(spreadsheetId string) *SpreadsheetsGetCall {
@@ -11936,7 +11964,7 @@ func (c *SpreadsheetsGetCall) Header() http.Header {
 
 func (c *SpreadsheetsGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/20210915")
+	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/"+internal.Version)
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -11998,7 +12026,7 @@ func (c *SpreadsheetsGetCall) Do(opts ...googleapi.CallOption) (*Spreadsheet, er
 	}
 	return ret, nil
 	// {
-	//   "description": "Returns the spreadsheet at the given ID. The caller must specify the spreadsheet ID. By default, data within grids will not be returned. You can include grid data one of two ways: * Specify a field mask listing your desired fields using the `fields` URL parameter in HTTP * Set the includeGridData URL parameter to true. If a field mask is set, the `includeGridData` parameter is ignored For large spreadsheets, it is recommended to retrieve only the specific fields of the spreadsheet that you want. To retrieve only subsets of the spreadsheet, use the ranges URL parameter. Multiple ranges can be specified. Limiting the range will return only the portions of the spreadsheet that intersect the requested ranges. Ranges are specified using A1 notation.",
+	//   "description": "Returns the spreadsheet at the given ID. The caller must specify the spreadsheet ID. By default, data within grids is not returned. You can include grid data in one of 2 ways: * Specify a field mask listing your desired fields using the `fields` URL parameter in HTTP * Set the includeGridData URL parameter to true. If a field mask is set, the `includeGridData` parameter is ignored For large spreadsheets, as a best practice, retrieve only the specific spreadsheet fields that you want. To retrieve only subsets of spreadsheet data, use the ranges URL parameter. Ranges are specified using [A1 notation](/sheets/api/guides/concepts#cell). You can define a single cell (for example, `A1`) or multiple cells (for example, `A1:D5`). You can also get cells from other sheets within the same spreadsheet (for example, `Sheet2!A1:C4`) or retrieve multiple ranges at once (for example, `?ranges=A1:D5\u0026ranges=Sheet2!A1:C4`). Limiting the range returns only the portions of the spreadsheet that intersect the requested ranges.",
 	//   "flatPath": "v4/spreadsheets/{spreadsheetId}",
 	//   "httpMethod": "GET",
 	//   "id": "sheets.spreadsheets.get",
@@ -12055,14 +12083,14 @@ type SpreadsheetsGetByDataFilterCall struct {
 // GetSpreadsheet in that it allows selecting which subsets of
 // spreadsheet data to return by specifying a dataFilters parameter.
 // Multiple DataFilters can be specified. Specifying one or more data
-// filters will return the portions of the spreadsheet that intersect
-// ranges matched by any of the filters. By default, data within grids
-// will not be returned. You can include grid data one of two ways: *
-// Specify a field mask listing your desired fields using the `fields`
-// URL parameter in HTTP * Set the includeGridData parameter to true. If
-// a field mask is set, the `includeGridData` parameter is ignored For
-// large spreadsheets, it is recommended to retrieve only the specific
-// fields of the spreadsheet that you want.
+// filters returns the portions of the spreadsheet that intersect ranges
+// matched by any of the filters. By default, data within grids is not
+// returned. You can include grid data one of 2 ways: * Specify a field
+// mask listing your desired fields using the `fields` URL parameter in
+// HTTP * Set the includeGridData parameter to true. If a field mask is
+// set, the `includeGridData` parameter is ignored For large
+// spreadsheets, as a best practice, retrieve only the specific
+// spreadsheet fields that you want.
 //
 // - spreadsheetId: The spreadsheet to request.
 func (r *SpreadsheetsService) GetByDataFilter(spreadsheetId string, getspreadsheetbydatafilterrequest *GetSpreadsheetByDataFilterRequest) *SpreadsheetsGetByDataFilterCall {
@@ -12099,7 +12127,7 @@ func (c *SpreadsheetsGetByDataFilterCall) Header() http.Header {
 
 func (c *SpreadsheetsGetByDataFilterCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/20210915")
+	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/"+internal.Version)
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -12163,7 +12191,7 @@ func (c *SpreadsheetsGetByDataFilterCall) Do(opts ...googleapi.CallOption) (*Spr
 	}
 	return ret, nil
 	// {
-	//   "description": "Returns the spreadsheet at the given ID. The caller must specify the spreadsheet ID. This method differs from GetSpreadsheet in that it allows selecting which subsets of spreadsheet data to return by specifying a dataFilters parameter. Multiple DataFilters can be specified. Specifying one or more data filters will return the portions of the spreadsheet that intersect ranges matched by any of the filters. By default, data within grids will not be returned. You can include grid data one of two ways: * Specify a field mask listing your desired fields using the `fields` URL parameter in HTTP * Set the includeGridData parameter to true. If a field mask is set, the `includeGridData` parameter is ignored For large spreadsheets, it is recommended to retrieve only the specific fields of the spreadsheet that you want.",
+	//   "description": "Returns the spreadsheet at the given ID. The caller must specify the spreadsheet ID. This method differs from GetSpreadsheet in that it allows selecting which subsets of spreadsheet data to return by specifying a dataFilters parameter. Multiple DataFilters can be specified. Specifying one or more data filters returns the portions of the spreadsheet that intersect ranges matched by any of the filters. By default, data within grids is not returned. You can include grid data one of 2 ways: * Specify a field mask listing your desired fields using the `fields` URL parameter in HTTP * Set the includeGridData parameter to true. If a field mask is set, the `includeGridData` parameter is ignored For large spreadsheets, as a best practice, retrieve only the specific spreadsheet fields that you want.",
 	//   "flatPath": "v4/spreadsheets/{spreadsheetId}:getByDataFilter",
 	//   "httpMethod": "POST",
 	//   "id": "sheets.spreadsheets.getByDataFilter",
@@ -12256,7 +12284,7 @@ func (c *SpreadsheetsDeveloperMetadataGetCall) Header() http.Header {
 
 func (c *SpreadsheetsDeveloperMetadataGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/20210915")
+	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/"+internal.Version)
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -12409,7 +12437,7 @@ func (c *SpreadsheetsDeveloperMetadataSearchCall) Header() http.Header {
 
 func (c *SpreadsheetsDeveloperMetadataSearchCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/20210915")
+	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/"+internal.Version)
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -12557,7 +12585,7 @@ func (c *SpreadsheetsSheetsCopyToCall) Header() http.Header {
 
 func (c *SpreadsheetsSheetsCopyToCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/20210915")
+	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/"+internal.Version)
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -12685,8 +12713,9 @@ type SpreadsheetsValuesAppendCall struct {
 // the sheet (column-wise or row-wise), it does not influence what cell
 // the data starts being written to.
 //
-// - range: The A1 notation of a range to search for a logical table of
-//   data. Values are appended after the last row of the table.
+// - range: The A1 notation (/sheets/api/guides/concepts#cell) of a
+//   range to search for a logical table of data. Values are appended
+//   after the last row of the table.
 // - spreadsheetId: The ID of the spreadsheet to update.
 func (r *SpreadsheetsValuesService) Append(spreadsheetId string, range_ string, valuerange *ValueRange) *SpreadsheetsValuesAppendCall {
 	c := &SpreadsheetsValuesAppendCall{s: r.s, urlParams_: make(gensupport.URLParams)}
@@ -12731,12 +12760,12 @@ func (c *SpreadsheetsValuesAppendCall) InsertDataOption(insertDataOption string)
 // (left of the decimal) counts the days since December 30th 1899. The
 // fractional portion (right of the decimal) counts the time as a
 // fraction of the day. For example, January 1st 1900 at noon would be
-// 2.5, 2 because it's 2 days after December 30st 1899, and .5 because
+// 2.5, 2 because it's 2 days after December 30th 1899, and .5 because
 // noon is half a day. February 1st 1900 at 3pm would be 33.625. This
 // correctly treats the year 1900 as not a leap year.
 //   "FORMATTED_STRING" - Instructs date, time, datetime, and duration
-// fields to be output as strings in their given number format (which is
-// dependent on the spreadsheet locale).
+// fields to be output as strings in their given number format (which
+// depends on the spreadsheet locale).
 func (c *SpreadsheetsValuesAppendCall) ResponseDateTimeRenderOption(responseDateTimeRenderOption string) *SpreadsheetsValuesAppendCall {
 	c.urlParams_.Set("responseDateTimeRenderOption", responseDateTimeRenderOption)
 	return c
@@ -12807,7 +12836,7 @@ func (c *SpreadsheetsValuesAppendCall) Header() http.Header {
 
 func (c *SpreadsheetsValuesAppendCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/20210915")
+	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/"+internal.Version)
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -12900,7 +12929,7 @@ func (c *SpreadsheetsValuesAppendCall) Do(opts ...googleapi.CallOption) (*Append
 	//       "type": "string"
 	//     },
 	//     "range": {
-	//       "description": "The A1 notation of a range to search for a logical table of data. Values are appended after the last row of the table.",
+	//       "description": "The [A1 notation](/sheets/api/guides/concepts#cell) of a range to search for a logical table of data. Values are appended after the last row of the table.",
 	//       "location": "path",
 	//       "required": true,
 	//       "type": "string"
@@ -12912,8 +12941,8 @@ func (c *SpreadsheetsValuesAppendCall) Do(opts ...googleapi.CallOption) (*Append
 	//         "FORMATTED_STRING"
 	//       ],
 	//       "enumDescriptions": [
-	//         "Instructs date, time, datetime, and duration fields to be output as doubles in \"serial number\" format, as popularized by Lotus 1-2-3. The whole number portion of the value (left of the decimal) counts the days since December 30th 1899. The fractional portion (right of the decimal) counts the time as a fraction of the day. For example, January 1st 1900 at noon would be 2.5, 2 because it's 2 days after December 30st 1899, and .5 because noon is half a day. February 1st 1900 at 3pm would be 33.625. This correctly treats the year 1900 as not a leap year.",
-	//         "Instructs date, time, datetime, and duration fields to be output as strings in their given number format (which is dependent on the spreadsheet locale)."
+	//         "Instructs date, time, datetime, and duration fields to be output as doubles in \"serial number\" format, as popularized by Lotus 1-2-3. The whole number portion of the value (left of the decimal) counts the days since December 30th 1899. The fractional portion (right of the decimal) counts the time as a fraction of the day. For example, January 1st 1900 at noon would be 2.5, 2 because it's 2 days after December 30th 1899, and .5 because noon is half a day. February 1st 1900 at 3pm would be 33.625. This correctly treats the year 1900 as not a leap year.",
+	//         "Instructs date, time, datetime, and duration fields to be output as strings in their given number format (which depends on the spreadsheet locale)."
 	//       ],
 	//       "location": "query",
 	//       "type": "string"
@@ -12985,7 +13014,7 @@ type SpreadsheetsValuesBatchClearCall struct {
 // BatchClear: Clears one or more ranges of values from a spreadsheet.
 // The caller must specify the spreadsheet ID and one or more ranges.
 // Only values are cleared -- all other properties of the cell (such as
-// formatting, data validation, etc..) are kept.
+// formatting and data validation) are kept.
 //
 // - spreadsheetId: The ID of the spreadsheet to update.
 func (r *SpreadsheetsValuesService) BatchClear(spreadsheetId string, batchclearvaluesrequest *BatchClearValuesRequest) *SpreadsheetsValuesBatchClearCall {
@@ -13022,7 +13051,7 @@ func (c *SpreadsheetsValuesBatchClearCall) Header() http.Header {
 
 func (c *SpreadsheetsValuesBatchClearCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/20210915")
+	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/"+internal.Version)
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -13086,7 +13115,7 @@ func (c *SpreadsheetsValuesBatchClearCall) Do(opts ...googleapi.CallOption) (*Ba
 	}
 	return ret, nil
 	// {
-	//   "description": "Clears one or more ranges of values from a spreadsheet. The caller must specify the spreadsheet ID and one or more ranges. Only values are cleared -- all other properties of the cell (such as formatting, data validation, etc..) are kept.",
+	//   "description": "Clears one or more ranges of values from a spreadsheet. The caller must specify the spreadsheet ID and one or more ranges. Only values are cleared -- all other properties of the cell (such as formatting and data validation) are kept.",
 	//   "flatPath": "v4/spreadsheets/{spreadsheetId}/values:batchClear",
 	//   "httpMethod": "POST",
 	//   "id": "sheets.spreadsheets.values.batchClear",
@@ -13169,7 +13198,7 @@ func (c *SpreadsheetsValuesBatchClearByDataFilterCall) Header() http.Header {
 
 func (c *SpreadsheetsValuesBatchClearByDataFilterCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/20210915")
+	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/"+internal.Version)
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -13298,12 +13327,12 @@ func (r *SpreadsheetsValuesService) BatchGet(spreadsheetId string) *Spreadsheets
 // (left of the decimal) counts the days since December 30th 1899. The
 // fractional portion (right of the decimal) counts the time as a
 // fraction of the day. For example, January 1st 1900 at noon would be
-// 2.5, 2 because it's 2 days after December 30st 1899, and .5 because
+// 2.5, 2 because it's 2 days after December 30th 1899, and .5 because
 // noon is half a day. February 1st 1900 at 3pm would be 33.625. This
 // correctly treats the year 1900 as not a leap year.
 //   "FORMATTED_STRING" - Instructs date, time, datetime, and duration
-// fields to be output as strings in their given number format (which is
-// dependent on the spreadsheet locale).
+// fields to be output as strings in their given number format (which
+// depends on the spreadsheet locale).
 func (c *SpreadsheetsValuesBatchGetCall) DateTimeRenderOption(dateTimeRenderOption string) *SpreadsheetsValuesBatchGetCall {
 	c.urlParams_.Set("dateTimeRenderOption", dateTimeRenderOption)
 	return c
@@ -13312,8 +13341,8 @@ func (c *SpreadsheetsValuesBatchGetCall) DateTimeRenderOption(dateTimeRenderOpti
 // MajorDimension sets the optional parameter "majorDimension": The
 // major dimension that results should use. For example, if the
 // spreadsheet data is: `A1=1,B1=2,A2=3,B2=4`, then requesting
-// `range=A1:B2,majorDimension=ROWS` returns `[[1,2],[3,4]]`, whereas
-// requesting `range=A1:B2,majorDimension=COLUMNS` returns
+// `ranges=["A1:B2"],majorDimension=ROWS` returns `[[1,2],[3,4]]`,
+// whereas requesting `ranges=["A1:B2"],majorDimension=COLUMNS` returns
 // `[[1,3],[2,4]]`.
 //
 // Possible values:
@@ -13326,7 +13355,8 @@ func (c *SpreadsheetsValuesBatchGetCall) MajorDimension(majorDimension string) *
 }
 
 // Ranges sets the optional parameter "ranges": The A1 notation or R1C1
-// notation of the range to retrieve values from.
+// notation (/sheets/api/guides/concepts#cell) of the range to retrieve
+// values from.
 func (c *SpreadsheetsValuesBatchGetCall) Ranges(ranges ...string) *SpreadsheetsValuesBatchGetCall {
 	c.urlParams_.SetMulti("ranges", append([]string{}, ranges...))
 	return c
@@ -13390,7 +13420,7 @@ func (c *SpreadsheetsValuesBatchGetCall) Header() http.Header {
 
 func (c *SpreadsheetsValuesBatchGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/20210915")
+	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/"+internal.Version)
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -13467,14 +13497,14 @@ func (c *SpreadsheetsValuesBatchGetCall) Do(opts ...googleapi.CallOption) (*Batc
 	//         "FORMATTED_STRING"
 	//       ],
 	//       "enumDescriptions": [
-	//         "Instructs date, time, datetime, and duration fields to be output as doubles in \"serial number\" format, as popularized by Lotus 1-2-3. The whole number portion of the value (left of the decimal) counts the days since December 30th 1899. The fractional portion (right of the decimal) counts the time as a fraction of the day. For example, January 1st 1900 at noon would be 2.5, 2 because it's 2 days after December 30st 1899, and .5 because noon is half a day. February 1st 1900 at 3pm would be 33.625. This correctly treats the year 1900 as not a leap year.",
-	//         "Instructs date, time, datetime, and duration fields to be output as strings in their given number format (which is dependent on the spreadsheet locale)."
+	//         "Instructs date, time, datetime, and duration fields to be output as doubles in \"serial number\" format, as popularized by Lotus 1-2-3. The whole number portion of the value (left of the decimal) counts the days since December 30th 1899. The fractional portion (right of the decimal) counts the time as a fraction of the day. For example, January 1st 1900 at noon would be 2.5, 2 because it's 2 days after December 30th 1899, and .5 because noon is half a day. February 1st 1900 at 3pm would be 33.625. This correctly treats the year 1900 as not a leap year.",
+	//         "Instructs date, time, datetime, and duration fields to be output as strings in their given number format (which depends on the spreadsheet locale)."
 	//       ],
 	//       "location": "query",
 	//       "type": "string"
 	//     },
 	//     "majorDimension": {
-	//       "description": "The major dimension that results should use. For example, if the spreadsheet data is: `A1=1,B1=2,A2=3,B2=4`, then requesting `range=A1:B2,majorDimension=ROWS` returns `[[1,2],[3,4]]`, whereas requesting `range=A1:B2,majorDimension=COLUMNS` returns `[[1,3],[2,4]]`.",
+	//       "description": "The major dimension that results should use. For example, if the spreadsheet data is: `A1=1,B1=2,A2=3,B2=4`, then requesting `ranges=[\"A1:B2\"],majorDimension=ROWS` returns `[[1,2],[3,4]]`, whereas requesting `ranges=[\"A1:B2\"],majorDimension=COLUMNS` returns `[[1,3],[2,4]]`.",
 	//       "enum": [
 	//         "DIMENSION_UNSPECIFIED",
 	//         "ROWS",
@@ -13489,7 +13519,7 @@ func (c *SpreadsheetsValuesBatchGetCall) Do(opts ...googleapi.CallOption) (*Batc
 	//       "type": "string"
 	//     },
 	//     "ranges": {
-	//       "description": "The A1 notation or R1C1 notation of the range to retrieve values from.",
+	//       "description": "The [A1 notation or R1C1 notation](/sheets/api/guides/concepts#cell) of the range to retrieve values from.",
 	//       "location": "query",
 	//       "repeated": true,
 	//       "type": "string"
@@ -13582,7 +13612,7 @@ func (c *SpreadsheetsValuesBatchGetByDataFilterCall) Header() http.Header {
 
 func (c *SpreadsheetsValuesBatchGetByDataFilterCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/20210915")
+	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/"+internal.Version)
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -13728,7 +13758,7 @@ func (c *SpreadsheetsValuesBatchUpdateCall) Header() http.Header {
 
 func (c *SpreadsheetsValuesBatchUpdateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/20210915")
+	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/"+internal.Version)
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -13873,7 +13903,7 @@ func (c *SpreadsheetsValuesBatchUpdateByDataFilterCall) Header() http.Header {
 
 func (c *SpreadsheetsValuesBatchUpdateByDataFilterCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/20210915")
+	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/"+internal.Version)
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -13986,7 +14016,8 @@ type SpreadsheetsValuesClearCall struct {
 // properties of the cell (such as formatting, data validation, etc..)
 // are kept.
 //
-// - range: The A1 notation or R1C1 notation of the values to clear.
+// - range: The A1 notation or R1C1 notation
+//   (/sheets/api/guides/concepts#cell) of the values to clear.
 // - spreadsheetId: The ID of the spreadsheet to update.
 func (r *SpreadsheetsValuesService) Clear(spreadsheetId string, range_ string, clearvaluesrequest *ClearValuesRequest) *SpreadsheetsValuesClearCall {
 	c := &SpreadsheetsValuesClearCall{s: r.s, urlParams_: make(gensupport.URLParams)}
@@ -14023,7 +14054,7 @@ func (c *SpreadsheetsValuesClearCall) Header() http.Header {
 
 func (c *SpreadsheetsValuesClearCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/20210915")
+	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/"+internal.Version)
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -14098,7 +14129,7 @@ func (c *SpreadsheetsValuesClearCall) Do(opts ...googleapi.CallOption) (*ClearVa
 	//   ],
 	//   "parameters": {
 	//     "range": {
-	//       "description": "The A1 notation or R1C1 notation of the values to clear.",
+	//       "description": "The [A1 notation or R1C1 notation](/sheets/api/guides/concepts#cell) of the values to clear.",
 	//       "location": "path",
 	//       "required": true,
 	//       "type": "string"
@@ -14141,8 +14172,9 @@ type SpreadsheetsValuesGetCall struct {
 // Get: Returns a range of values from a spreadsheet. The caller must
 // specify the spreadsheet ID and a range.
 //
-// - range: The A1 notation or R1C1 notation of the range to retrieve
-//   values from.
+// - range: The A1 notation or R1C1 notation
+//   (/sheets/api/guides/concepts#cell) of the range to retrieve values
+//   from.
 // - spreadsheetId: The ID of the spreadsheet to retrieve data from.
 func (r *SpreadsheetsValuesService) Get(spreadsheetId string, range_ string) *SpreadsheetsValuesGetCall {
 	c := &SpreadsheetsValuesGetCall{s: r.s, urlParams_: make(gensupport.URLParams)}
@@ -14163,12 +14195,12 @@ func (r *SpreadsheetsValuesService) Get(spreadsheetId string, range_ string) *Sp
 // (left of the decimal) counts the days since December 30th 1899. The
 // fractional portion (right of the decimal) counts the time as a
 // fraction of the day. For example, January 1st 1900 at noon would be
-// 2.5, 2 because it's 2 days after December 30st 1899, and .5 because
+// 2.5, 2 because it's 2 days after December 30th 1899, and .5 because
 // noon is half a day. February 1st 1900 at 3pm would be 33.625. This
 // correctly treats the year 1900 as not a leap year.
 //   "FORMATTED_STRING" - Instructs date, time, datetime, and duration
-// fields to be output as strings in their given number format (which is
-// dependent on the spreadsheet locale).
+// fields to be output as strings in their given number format (which
+// depends on the spreadsheet locale).
 func (c *SpreadsheetsValuesGetCall) DateTimeRenderOption(dateTimeRenderOption string) *SpreadsheetsValuesGetCall {
 	c.urlParams_.Set("dateTimeRenderOption", dateTimeRenderOption)
 	return c
@@ -14248,7 +14280,7 @@ func (c *SpreadsheetsValuesGetCall) Header() http.Header {
 
 func (c *SpreadsheetsValuesGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/20210915")
+	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/"+internal.Version)
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -14327,8 +14359,8 @@ func (c *SpreadsheetsValuesGetCall) Do(opts ...googleapi.CallOption) (*ValueRang
 	//         "FORMATTED_STRING"
 	//       ],
 	//       "enumDescriptions": [
-	//         "Instructs date, time, datetime, and duration fields to be output as doubles in \"serial number\" format, as popularized by Lotus 1-2-3. The whole number portion of the value (left of the decimal) counts the days since December 30th 1899. The fractional portion (right of the decimal) counts the time as a fraction of the day. For example, January 1st 1900 at noon would be 2.5, 2 because it's 2 days after December 30st 1899, and .5 because noon is half a day. February 1st 1900 at 3pm would be 33.625. This correctly treats the year 1900 as not a leap year.",
-	//         "Instructs date, time, datetime, and duration fields to be output as strings in their given number format (which is dependent on the spreadsheet locale)."
+	//         "Instructs date, time, datetime, and duration fields to be output as doubles in \"serial number\" format, as popularized by Lotus 1-2-3. The whole number portion of the value (left of the decimal) counts the days since December 30th 1899. The fractional portion (right of the decimal) counts the time as a fraction of the day. For example, January 1st 1900 at noon would be 2.5, 2 because it's 2 days after December 30th 1899, and .5 because noon is half a day. February 1st 1900 at 3pm would be 33.625. This correctly treats the year 1900 as not a leap year.",
+	//         "Instructs date, time, datetime, and duration fields to be output as strings in their given number format (which depends on the spreadsheet locale)."
 	//       ],
 	//       "location": "query",
 	//       "type": "string"
@@ -14349,7 +14381,7 @@ func (c *SpreadsheetsValuesGetCall) Do(opts ...googleapi.CallOption) (*ValueRang
 	//       "type": "string"
 	//     },
 	//     "range": {
-	//       "description": "The A1 notation or R1C1 notation of the range to retrieve values from.",
+	//       "description": "The [A1 notation or R1C1 notation](/sheets/api/guides/concepts#cell) of the range to retrieve values from.",
 	//       "location": "path",
 	//       "required": true,
 	//       "type": "string"
@@ -14406,7 +14438,8 @@ type SpreadsheetsValuesUpdateCall struct {
 // Update: Sets values in a range of a spreadsheet. The caller must
 // specify the spreadsheet ID, range, and a valueInputOption.
 //
-// - range: The A1 notation of the values to update.
+// - range: The A1 notation (/sheets/api/guides/concepts#cell) of the
+//   values to update.
 // - spreadsheetId: The ID of the spreadsheet to update.
 func (r *SpreadsheetsValuesService) Update(spreadsheetId string, range_ string, valuerange *ValueRange) *SpreadsheetsValuesUpdateCall {
 	c := &SpreadsheetsValuesUpdateCall{s: r.s, urlParams_: make(gensupport.URLParams)}
@@ -14441,12 +14474,12 @@ func (c *SpreadsheetsValuesUpdateCall) IncludeValuesInResponse(includeValuesInRe
 // (left of the decimal) counts the days since December 30th 1899. The
 // fractional portion (right of the decimal) counts the time as a
 // fraction of the day. For example, January 1st 1900 at noon would be
-// 2.5, 2 because it's 2 days after December 30st 1899, and .5 because
+// 2.5, 2 because it's 2 days after December 30th 1899, and .5 because
 // noon is half a day. February 1st 1900 at 3pm would be 33.625. This
 // correctly treats the year 1900 as not a leap year.
 //   "FORMATTED_STRING" - Instructs date, time, datetime, and duration
-// fields to be output as strings in their given number format (which is
-// dependent on the spreadsheet locale).
+// fields to be output as strings in their given number format (which
+// depends on the spreadsheet locale).
 func (c *SpreadsheetsValuesUpdateCall) ResponseDateTimeRenderOption(responseDateTimeRenderOption string) *SpreadsheetsValuesUpdateCall {
 	c.urlParams_.Set("responseDateTimeRenderOption", responseDateTimeRenderOption)
 	return c
@@ -14517,7 +14550,7 @@ func (c *SpreadsheetsValuesUpdateCall) Header() http.Header {
 
 func (c *SpreadsheetsValuesUpdateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/20210915")
+	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/"+internal.Version)
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -14597,7 +14630,7 @@ func (c *SpreadsheetsValuesUpdateCall) Do(opts ...googleapi.CallOption) (*Update
 	//       "type": "boolean"
 	//     },
 	//     "range": {
-	//       "description": "The A1 notation of the values to update.",
+	//       "description": "The [A1 notation](/sheets/api/guides/concepts#cell) of the values to update.",
 	//       "location": "path",
 	//       "required": true,
 	//       "type": "string"
@@ -14609,8 +14642,8 @@ func (c *SpreadsheetsValuesUpdateCall) Do(opts ...googleapi.CallOption) (*Update
 	//         "FORMATTED_STRING"
 	//       ],
 	//       "enumDescriptions": [
-	//         "Instructs date, time, datetime, and duration fields to be output as doubles in \"serial number\" format, as popularized by Lotus 1-2-3. The whole number portion of the value (left of the decimal) counts the days since December 30th 1899. The fractional portion (right of the decimal) counts the time as a fraction of the day. For example, January 1st 1900 at noon would be 2.5, 2 because it's 2 days after December 30st 1899, and .5 because noon is half a day. February 1st 1900 at 3pm would be 33.625. This correctly treats the year 1900 as not a leap year.",
-	//         "Instructs date, time, datetime, and duration fields to be output as strings in their given number format (which is dependent on the spreadsheet locale)."
+	//         "Instructs date, time, datetime, and duration fields to be output as doubles in \"serial number\" format, as popularized by Lotus 1-2-3. The whole number portion of the value (left of the decimal) counts the days since December 30th 1899. The fractional portion (right of the decimal) counts the time as a fraction of the day. For example, January 1st 1900 at noon would be 2.5, 2 because it's 2 days after December 30th 1899, and .5 because noon is half a day. February 1st 1900 at 3pm would be 33.625. This correctly treats the year 1900 as not a leap year.",
+	//         "Instructs date, time, datetime, and duration fields to be output as strings in their given number format (which depends on the spreadsheet locale)."
 	//       ],
 	//       "location": "query",
 	//       "type": "string"
