@@ -2,137 +2,99 @@ package main
 
 import (
 	"context"
-	"flag"
-	"fmt"
+	"log"
 	"os"
-	"os/user"
-	"strconv"
+	"strings"
+	"text/template"
+	"time"
 
-	"github.com/shiftstack/gazelle/pkg/gsheets"
+	"cloud.google.com/go/storage"
 	"github.com/shiftstack/gazelle/pkg/job"
 	"github.com/shiftstack/gazelle/pkg/prow"
 	"github.com/shiftstack/gazelle/pkg/rca"
+	"github.com/shiftstack/gazelle/pkg/slack"
+	"google.golang.org/api/option"
+
+	prowjobv1 "k8s.io/test-infra/prow/apis/prowjobs/v1"
 )
 
-var (
-	requestedJobName string
-	requestedJobID   int64
-	username         string
-)
+const debug = false
 
-var valid_jobs = []string{
-	"periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.10-e2e-openstack-kuryr",
-	"periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.10-e2e-openstack-parallel",
-	"periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.10-e2e-openstack-serial",
-	"periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.10-upgrade-from-stable-4.9-e2e-openstack-upgrade",
-	"periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.10-e2e-openstack-ovn",
-	"periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.10-e2e-openstack-fips",
-	"periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.10-e2e-openstack-az",
-	"periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.10-e2e-openstack-proxy",
-	"periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.9-e2e-openstack-proxy",
-	"periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.9-e2e-openstack-kuryr",
-	"periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.9-e2e-openstack-parallel",
-	"periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.9-e2e-openstack-serial",
-	"periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.9-upgrade-from-stable-4.8-e2e-openstack-upgrade",
-	"periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.9-e2e-openstack-ovn",
-	"periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.9-e2e-openstack-az",
-	"periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.9-e2e-openstack-fips",
-	"periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.8-e2e-openstack-kuryr",
-	"periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.8-e2e-openstack-parallel",
-	"periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.8-e2e-openstack-serial",
-	"periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.7-e2e-openstack-kuryr",
-	"periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.7-e2e-openstack-parallel",
-	"periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.7-e2e-openstack-serial",
-	"periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.6-e2e-openstack-parallel",
-	"periodic-ci-shiftstack-shiftstack-ci-main-periodic-4.6-e2e-openstack-serial",
-	"release-openshift-ocp-installer-e2e-openstack-4.5",
-	"release-openshift-ocp-installer-e2e-openstack-serial-4.5",
-}
+var tmpl = template.Must(template.New("notify").Parse("Job *{{.Spec.Job}}* ended with *{{.Status.State}}*. <{{.Status.URL}}|View logs>{{ range .Reports }}\n * *{{ .Name }}*: {{ . }}{{ end }}"))
 
-func toBufferedChannel(numbers ...int64) <-chan int64 {
-	ch := make(chan int64, len(numbers))
-	for _, n := range numbers {
-		ch <- n
+func getClient(ctx context.Context) (*storage.BucketHandle, error) {
+	client, err := storage.NewClient(ctx, option.WithoutAuthentication())
+	if err != nil {
+		return nil, err
 	}
-	close(ch)
-	return ch
+
+	return client.Bucket("origin-ci-test"), nil
 }
 
 func main() {
+	slackHook := os.Getenv("SLACK_HOOK")
+
 	ctx := context.Background()
-	client := gsheets.NewClient(ctx)
 
-	var jobs []string
-	if requestedJobName == "" {
-		jobs = valid_jobs
-	} else {
-		jobs = []string{requestedJobName}
+	reportJobsFrom := time.Now()
+	ticker := time.NewTicker(time.Hour)
+
+	if debug {
+		reportJobsFrom = time.Now().Add(-7 * 24 * time.Hour)
+		ticker.Reset(time.Second)
+		time.Sleep(1200 * time.Millisecond)
+		ticker.Stop()
 	}
 
-	for _, jobName := range jobs {
-		fmt.Printf("Updating %s\n", jobName)
+	defer ticker.Stop()
 
-		sheet := gsheets.Sheet{
-			JobName: jobName,
-			Client:  &client,
-		}
+	notifier := slack.New(slackHook)
 
-		var jobIDs <-chan int64
-		if requestedJobID != 0 {
-			jobIDs = toBufferedChannel(requestedJobID)
-		} else {
-			lowerBound := sheet.GetLatestId() + 1
-			jobIDs = prow.Sorted(prow.JobIDs(ctx, jobName, lowerBound))
-		}
+	storageClient, err := getClient(ctx)
+	if err != nil {
+		panic(err)
+	}
 
-		for jobID := range jobIDs {
-			fmt.Printf("%s %v\n", jobName, jobID)
-			j := job.Job{
-				FullName: jobName,
-				ID:       strconv.FormatInt(jobID, 10),
-			}
+	watcher := prow.NewWatcher(ctx, storageClient, ticker.C)
 
-			result, err := j.Result()
-			if err == nil {
-				j.ComputedResult = result
-			} else {
-				j.ComputedResult = "Pending"
-			}
+	for _, jobName := range jobsToBeWatched {
+		log.Printf("Adding %s", jobName)
+		watcher.Watch(jobName, 0)
+	}
 
-			var (
-				testFailures  []string
-				infraFailures []string
-			)
-			for failure := range rca.Find(j) {
-				if failure.IsInfra() {
-					infraFailures = append(infraFailures, failure.String())
+	for j := range watcher.Jobs {
+		if j.Status.CompletionTime.After(reportJobsFrom) {
+			switch j.Status.State {
+			case prowjobv1.FailureState, prowjobv1.ErrorState, prowjobv1.AbortedState:
+				var reports []rca.Report
+				for _, check := range [...]func(context.Context, *storage.BucketHandle, job.Job) (rca.Report, error){
+					rca.ServerError,
+					rca.PreviousResult,
+				} {
+					report, err := check(ctx, storageClient, j)
+					if err != nil {
+						log.Printf("rca error: %v", err)
+					} else if report.Occurred() {
+						reports = append(reports, report)
+					}
 				}
-				testFailures = append(testFailures, failure.String())
-			}
 
-			j.RootCause = testFailures
-			if len(infraFailures) > 0 {
-				j.RootCause = infraFailures
-				j.ComputedResult = "INFRA FAILURE"
-			}
+				var s strings.Builder
+				if err := tmpl.ExecuteTemplate(&s, "notify", struct {
+					job.Job
+					Reports []rca.Report
+				}{
+					Job:     j,
+					Reports: reports,
+				}); err != nil {
+					log.Printf("ERROR: failed to build the notification message: %v", err)
+					continue
+				}
 
-			sheet.AddRow(j, username)
+				if err := notifier.Send(ctx, s.String()); err != nil {
+					log.Printf("failed to send notification: %v", err)
+				}
+			}
 		}
 	}
-}
-
-func init() {
-	flag.StringVar(&requestedJobName, "job", "", "Full name of the test job (e.g. release-openshift-ocp-installer-e2e-openstack-serial-4.4). All known jobs if unset.")
-	flag.Int64Var(&requestedJobID, "id", 0, "Job ID. If unset, it consists of all new runs since last time the spreadsheet was updated.")
-
-	flag.StringVar(&username, "user", os.Getenv("CIREPORT_USER"), "Username to use for CI Cop")
-	if username == "" {
-		if u, err := user.Current(); err == nil {
-			username = u.Username
-		} else {
-			username = "cireport"
-		}
-	}
-
-	flag.Parse()
 }
