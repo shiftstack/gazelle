@@ -4,6 +4,8 @@ aliases:
   openstack-approvers:
     - EmilienM
     - MaysaMacedo
+    - dulek
+    - gryf
     - mandre
     - mdbooth
     - pierreprinetti
@@ -11,6 +13,8 @@ aliases:
   openstack-reviewers:
     - EmilienM
     - MaysaMacedo
+    - dulek
+    - gryf
     - mandre
     - mdbooth
     - pierreprinetti
