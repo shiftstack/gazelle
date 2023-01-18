@@ -1,170 +1,77 @@
 package rca
 
 import (
-	"io"
-	"sync"
+	"context"
+	"encoding/json"
+	"fmt"
+
+	"cloud.google.com/go/storage"
+	"github.com/shiftstack/gazelle/pkg/job"
+	"github.com/shiftstack/gazelle/pkg/prow"
 )
 
-var (
-	rules = []Rule{
-		matchBuildLogs(
-			"to become ready: unexpected state 'ERROR', wanted target 'ACTIVE'. last error",
-			CauseErroredVM,
-		),
-
-		matchBuildLogs(
-			"to become ready: timeout while waiting for state to become 'ACTIVE'",
-			CauseErroredVM,
-		),
-
-		matchBuildLogs(
-			"The volume is in error status. Please check with your cloud admin",
-			CauseErroredVolume,
-		),
-
-		matchBuildLogs(
-			"Cluster operator authentication Progressing is True with ProgressingWellKnownNotReady: Progressing: got '404 Not Found' status while trying to GET the OAuth well-known",
-			CauseClusterTimeout,
-		),
-
-		matchBuildLogs(
-			"failed to initialize the cluster: Cluster operator [\\w-]+ is still updating",
-			CauseClusterTimeout,
-		),
-
-		matchBuildLogs(
-			"failed to initialize the cluster: Working towards",
-			CauseClusterTimeout,
-		),
-
-		matchBuildLogs(
-			"failed to initialize the cluster: Multiple errors are preventing progress",
-			CauseClusterTimeout,
-		),
-
-		matchBuildLogs(
-			"failed to wait for bootstrapping to complete",
-			CauseBootstrapTimeout,
-		),
-
-		matchBuildLogs(
-			"failed: unable to import latest release image",
-			CauseReleaseImage,
-		),
-
-		matchBuildLogs(
-			"failed: unable to find the '[\\w-]+' image in the provided release image",
-			CauseReleaseImage,
-		),
-
-		matchMachines(
-			`"machine.openshift.io/instance-state": "ERROR"`,
-			CauseErroredVM,
-		),
-
-		matchNodes(
-			"ERROR",
-			CauseErroredVM,
-		),
-
-		matchBuildLogs(
-			`Quota exceeded for resources: \['router'\]`,
-			CauseQuota("router"),
-		),
-
-		matchBuildLogs(
-			"VolumeSizeExceedsAvailableQuota: Requested volume or snapshot exceeds allowed gigabytes quota",
-			CauseQuota("volume size"),
-		),
-
-		matchBuildLogs(
-			"Quota exceeded, too many server groups",
-			CauseQuota("server groups"),
-		),
-
-		matchBuildLogs(
-			`when calling the ChangeResourceRecordSets operation`,
-			CauseRoute53,
-		),
-
-		matchBuildLogs(
-			`failed to acquire lease`,
-			CauseLeaseFailure,
-		),
-
-		findBuildLogsInfra(
-			`error: could not run steps: step \[.*\] failed.*`,
-			`error: could not run steps: step e2e-openstack(?:-serial)? failed: step needs a lease but no lease client provided`,
-			`error: could not resolve inputs: could not determine inputs for step \[.*\].*`,
-			`error: failed to generate steps from config.*`,
-			`An unexpected error prevented the server from fulfilling your request. \(HTTP \d{3}\)`,
-			`Failed to open /logs/process-log.txt: open /logs/process-log.txt: no such file or directory`,
-			`Entrypoint received interrupt: terminated`,
-			`error: could not initialize namespace.*`,
-		),
-
-		findBuildLogsGeneric(
-			`failed to fetch Terraform Variables: failed to generate asset .*`,
-			`INFO: Unexpected error listing nodes.*`,
-			`GLIBC_\d+\.\d+' not found \(required by.*\)`,
-		),
-
-		failedTests,
-	}
-)
-
-type Rule func(j job, failures chan<- Cause)
-
-type job interface {
-	Result() (string, error)
-	BuildLog() (io.Reader, error)
-	Machines() (io.Reader, error)
-	Nodes() (io.Reader, error)
-	JUnit() (io.Reader, error)
+type Report struct {
+	name     string
+	occurred bool
+	message  string
 }
 
-func Find(j job) <-chan Cause {
-	failures := make(chan Cause)
-
-	res, _ := j.Result()
-	if res == "SUCCESS" {
-		close(failures)
-		return failures
-	}
-
-	var wg sync.WaitGroup
-	for _, rule := range rules {
-		wg.Add(1)
-		go func(rule Rule) {
-			rule(j, failures)
-			wg.Done()
-		}(rule)
-	}
-
-	go func() {
-		wg.Wait()
-		close(failures)
-	}()
-
-	return uniqueFilter(failures)
+func (r Report) Name() string {
+	return r.name
 }
 
-func uniqueFilter(inCh <-chan Cause) <-chan Cause {
-	var (
-		outCh = make(chan Cause)
-		cache = make(map[Cause]struct{})
-	)
+func (r Report) Occurred() bool {
+	return r.occurred
+}
+func (r Report) String() string {
+	return r.message
+}
 
-	go func() {
-		for cause := range inCh {
-			if _, ok := cache[cause]; ok {
-				continue
-			}
-			outCh <- cause
-			cache[cause] = struct{}{}
+// ServerError detects failed VMs
+func ServerError(ctx context.Context, storageClient *storage.BucketHandle, j job.Job) (Report, error) {
+	step, err := j.Step(ctx, storageClient, "openstack-gather")
+	if err != nil {
+		return Report{}, fmt.Errorf("failed to get openstack-gather: %w", err)
+	}
+
+	if !step.Passed {
+		return Report{}, nil
+	}
+
+	rc, err := step.GetArtifact(ctx, storageClient, "json/openstack_server_list.json")
+	if err != nil {
+		return Report{}, fmt.Errorf("failed to get openstack_server_list.json: %w", err)
+	}
+	defer rc.Close()
+
+	var servers []struct{ Status string }
+	if err := json.NewDecoder(rc).Decode(&servers); err != nil {
+		return Report{}, fmt.Errorf("failed to decode openstack_server_list.json: %w", err)
+	}
+
+	for _, server := range servers {
+		if server.Status != "ACTIVE" {
+			return Report{
+				name:     "ServerError",
+				occurred: true,
+				message:  "one or more servers are not ACTIVE",
+			}, nil
 		}
-		close(outCh)
-	}()
+	}
 
-	return outCh
+	return Report{}, nil
+}
+
+// PreviousResult checks whether the previous run of the same job succeeded
+func PreviousResult(ctx context.Context, storageClient *storage.BucketHandle, j job.Job) (Report, error) {
+	previousJob, ok := <-prow.FindPreviousN(ctx, storageClient, j.Spec.Job, j.Status.BuildID, 1)
+	if !ok {
+		return Report{}, nil
+	}
+
+	return Report{
+		name:     "PreviousResult",
+		occurred: true,
+		message:  fmt.Sprintf("the previous run (%s) ended with %s", previousJob.Status.BuildID, previousJob.Status.State),
+	}, nil
 }

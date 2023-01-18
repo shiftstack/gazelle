@@ -2,23 +2,20 @@ package prow
 
 import (
 	"context"
+	"encoding/json"
 	"io/ioutil"
-	"sort"
+	"log"
+	"path"
 	"strconv"
 	"strings"
 
 	"cloud.google.com/go/storage"
+	"github.com/shiftstack/gazelle/pkg/job"
 	"google.golang.org/api/iterator"
-	"google.golang.org/api/option"
+	prowjobv1 "k8s.io/test-infra/prow/apis/prowjobs/v1"
 )
 
 const bucketName = "origin-ci-test"
-
-type int64slice []int64
-
-func (s int64slice) Len() int           { return len([]int64(s)) }
-func (s int64slice) Less(i, j int) bool { return s[i] < s[j] }
-func (s int64slice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 
 func jobIsFinished(ctx context.Context, bkt *storage.BucketHandle, jobName string, jobID int64) (bool, error) {
 	_, err := bkt.Object("logs/" + jobName + "/" + strconv.FormatInt(jobID, 10) + "/finished.json").Attrs(ctx)
@@ -30,6 +27,18 @@ func jobIsFinished(ctx context.Context, bkt *storage.BucketHandle, jobName strin
 	default:
 		return false, err
 	}
+}
+
+func getProwJob(ctx context.Context, bkt *storage.BucketHandle, jobName string, jobID int64) (prowjobv1.ProwJob, error) {
+	var pj prowjobv1.ProwJob
+	r, err := bkt.Object("logs/" + jobName + "/" + strconv.FormatInt(jobID, 10) + "/prowjob.json").NewReader(ctx)
+	if err != nil {
+		return pj, err
+	}
+	defer r.Close()
+
+	err = json.NewDecoder(r).Decode(&pj)
+	return pj, err
 }
 
 func getLastID(ctx context.Context, bkt *storage.BucketHandle, jobName string) (int64, error) {
@@ -49,23 +58,16 @@ func getLastID(ctx context.Context, bkt *storage.BucketHandle, jobName string) (
 	return strconv.ParseInt(string(s), 10, 64)
 }
 
-func JobIDs(ctx context.Context, jobName string, from int64) <-chan int64 {
-	client, err := storage.NewClient(ctx, option.WithoutAuthentication())
+func FindNext(ctx context.Context, storageClient *storage.BucketHandle, jobName string, lastKnownID int64) <-chan job.Job {
+	lastJobID, err := getLastID(ctx, storageClient, jobName)
 	if err != nil {
-		panic(err)
+		panic("failed to get the last ID for " + jobName + " :" + err.Error())
 	}
 
-	bkt := client.Bucket(bucketName)
-
-	lastJobID, err := getLastID(ctx, bkt, jobName)
-	if err != nil {
-		panic(err)
-	}
-
-	ids := make(chan int64)
-	if from > lastJobID {
-		close(ids)
-		return ids
+	jobCh := make(chan job.Job)
+	if lastKnownID > lastJobID {
+		close(jobCh)
+		return jobCh
 	}
 
 	query := &storage.Query{
@@ -75,63 +77,131 @@ func JobIDs(ctx context.Context, jobName string, from int64) <-chan int64 {
 	query.SetAttrSelection([]string{"Prefix"})
 
 	go func() {
-		defer close(ids)
-		objects := bkt.Objects(ctx, query)
-		for {
-			select {
-			case <-ctx.Done():
-				panic(ctx.Err())
-			default:
-			}
+		defer close(jobCh)
+		objects := storageClient.Objects(ctx, query)
 
+		for {
 			attrs, err := objects.Next()
 			if err == iterator.Done {
-				break
+				return
 			}
 			if err != nil {
-				panic(err)
+				log.Print(err)
+				return
 			}
 
-			path := strings.Split(attrs.Prefix, "/")
-			if len(path) > 2 {
-				id, err := strconv.ParseInt(path[len(path)-2], 10, 64)
+			jobPath := strings.Split(attrs.Prefix, "/")
+			if len(jobPath) > 2 {
+				id, err := strconv.ParseInt(jobPath[len(jobPath)-2], 10, 64)
 				if err != nil {
-					panic(err)
+					log.Print(err)
+					return
 				}
-				if id < from {
-					continue
+				if id <= lastKnownID {
+					return
 				}
-				if id >= lastJobID {
-					finished, err := jobIsFinished(ctx, bkt, jobName, id)
+				if id > lastJobID {
+					finished, err := jobIsFinished(ctx, storageClient, jobName, id)
 					if err != nil {
-						panic(err)
+						log.Print(err)
+						return
 					}
 					if !finished {
-						break
+						return
 					}
 				}
-				ids <- id
+
+				j, err := job.New(ctx, storageClient, path.Join("logs", jobName, strconv.FormatInt(id, 10)))
+				if err != nil {
+					log.Print(err)
+					break
+				}
+
+				select {
+				case jobCh <- j:
+				case <-ctx.Done():
+					log.Print(err)
+					break
+				}
 			}
 		}
 	}()
-	return ids
+	return jobCh
 }
 
-func Sorted(unsorted <-chan int64) <-chan int64 {
-	var cache []int64
-	for n := range unsorted {
-		cache = append(cache, n)
+// min returns the smallest between a and n, or a if n is negative.
+func min(a, n int) int {
+	if n < 0 || a < n {
+		return a
+	}
+	return n
+}
+
+func FindPrevious(ctx context.Context, storageClient *storage.BucketHandle, jobName string, currentID string) <-chan job.Job {
+	return FindPreviousN(ctx, storageClient, jobName, currentID, -1)
+}
+
+func FindPreviousN(ctx context.Context, storageClient *storage.BucketHandle, jobName string, currentID string, n int) <-chan job.Job {
+	currentJobID, err := strconv.ParseInt(currentID, 10, 64)
+	if err != nil {
+		panic("failed to parse the job ID as int64: " + err.Error())
 	}
 
-	sort.Sort(int64slice(cache))
+	jobCh := make(chan job.Job)
 
-	sorted := make(chan int64)
+	query := &storage.Query{
+		Prefix:    "logs/" + jobName + "/",
+		Delimiter: "/",
+	}
+	query.SetAttrSelection([]string{"Prefix"})
+	objects := storageClient.Objects(ctx, query)
+
+	var objectList []*storage.ObjectAttrs
+	for {
+		attrs, err := objects.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			log.Print(err)
+		}
+		objectList = append(objectList, attrs)
+	}
+	reversedObjectList := make([]*storage.ObjectAttrs, min(len(objectList), n))
+
+	for i := range reversedObjectList {
+		reversedObjectList[i] = objectList[len(objectList)-1-1-i]
+	}
+
 	go func() {
-		defer close(sorted)
-		for _, n := range cache {
-			sorted <- n
+		defer close(jobCh)
+
+		for _, attrs := range reversedObjectList {
+			jobPath := strings.Split(attrs.Prefix, "/")
+			if len(jobPath) > 2 {
+				id, err := strconv.ParseInt(jobPath[len(jobPath)-2], 10, 64)
+				if err != nil {
+					log.Print(err)
+					break
+				}
+				if id >= currentJobID {
+					continue
+				}
+
+				j, err := job.New(ctx, storageClient, path.Join("logs", jobName, strconv.FormatInt(id, 10)))
+				if err != nil {
+					log.Print(err)
+					break
+				}
+
+				select {
+				case jobCh <- j:
+				case <-ctx.Done():
+					log.Print(err)
+					break
+				}
+			}
 		}
 	}()
-
-	return sorted
+	return jobCh
 }
