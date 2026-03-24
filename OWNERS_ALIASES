@@ -8,7 +8,6 @@ aliases:
     - gryf
     - mandre
     - mdbooth
-    - pierreprinetti
     - stephenfin
   openstack-reviewers:
     - EmilienM
@@ -17,5 +16,4 @@ aliases:
     - gryf
     - mandre
     - mdbooth
-    - pierreprinetti
     - stephenfin
